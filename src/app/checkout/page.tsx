@@ -30,6 +30,8 @@ export default function CheckoutPage() {
   const { items, getTotal } = useCartStore();
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [orderPlaced, setOrderPlaced] = useState(false);
+  const [orderId, setOrderId] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState<FormData>({
     email: '',
@@ -105,6 +107,7 @@ export default function CheckoutPage() {
     setIsSubmitting(true);
     try {
       const token = localStorage.getItem('auth_token');
+      const cartItems = useCartStore.getState().items;
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: {
@@ -123,12 +126,14 @@ export default function CheckoutPage() {
             country: formData.country,
           },
           paymentMethod: formData.paymentMethod,
+          items: cartItems,
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Checkout failed');
       useCartStore.getState().clearCart();
-      router.push('/orders');
+      setOrderId(data.order.id);
+      setOrderPlaced(true);
     } catch (err: unknown) {
       setErrors({ submit: err instanceof Error ? err.message : 'Something went wrong' });
     } finally {
@@ -153,6 +158,72 @@ export default function CheckoutPage() {
     `w-full bg-white/5 border rounded-xl px-4 py-3.5 text-white text-sm placeholder:text-white/30 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500/50 font-body ${
       errors[field] ? 'border-red-500/50' : 'border-white/10 hover:border-white/20'
     }`;
+
+  if (orderPlaced) {
+    return (
+      <div className="min-h-screen bg-luxury-bg pt-24 pb-16 px-4">
+        <div className="max-w-md mx-auto text-center py-24">
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: 'spring', duration: 0.5 }}
+            className="w-24 h-24 mx-auto mb-8 rounded-full bg-green-500/10 border border-green-500/30 flex items-center justify-center"
+          >
+            <Check size={40} className="text-green-500" />
+          </motion.div>
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="font-display text-3xl text-gradient-gold mb-4"
+          >
+            Order Placed Successfully!
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="text-white/50 font-body text-sm mb-3"
+          >
+            Thank you for your purchase. Your order has been confirmed.
+          </motion.p>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            className="text-amber-500 font-body text-sm mb-8"
+          >
+            Order ID: {orderId}
+          </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+            className="flex flex-col sm:flex-row gap-4 justify-center"
+          >
+            <Link href="/orders">
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="px-8 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-black font-body font-semibold tracking-wider uppercase text-sm rounded-full hover:shadow-lg hover:shadow-amber-500/30 transition-all"
+              >
+                View Orders
+              </motion.button>
+            </Link>
+            <Link href="/collection">
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="px-8 py-3 border border-white/20 text-white/70 hover:text-white font-body font-semibold tracking-wider uppercase text-sm rounded-full hover:border-amber-500/50 transition-all"
+              >
+                Continue Shopping
+              </motion.button>
+            </Link>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-luxury-bg pt-24 pb-16 px-4">
