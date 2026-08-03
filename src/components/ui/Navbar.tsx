@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Search,
   Heart,
   ShoppingBag,
   User,
@@ -28,7 +27,6 @@ export default function Navbar() {
   const setCartOpen = useStore((s) => s.ui.setCartOpen);
   const isAuthOpen = useStore((s) => s.ui.isAuthOpen);
   const setAuthOpen = useStore((s) => s.ui.setAuthOpen);
-  const setSearchOpen = useStore((s) => s.ui.setSearchOpen);
   const cartItems = useStore((s) => s.cart.items);
   const [wishlistCount] = useState(0);
 
@@ -88,12 +86,6 @@ export default function Navbar() {
 
             {/* Desktop Icons */}
             <div className="hidden md:flex items-center gap-5">
-              <button
-                onClick={() => setSearchOpen(true)}
-                className="text-white/70 hover:text-amber-400 transition-colors duration-300"
-              >
-                <Search size={20} />
-              </button>
               <Link
                 href="/wishlist"
                 className="relative text-white/70 hover:text-amber-400 transition-colors duration-300"
@@ -188,12 +180,6 @@ export default function Navbar() {
               transition={{ delay: 0.5 }}
               className="flex items-center justify-center gap-8 pb-12"
             >
-              <button
-                onClick={() => setSearchOpen(true)}
-                className="text-white/60 hover:text-amber-400 transition-colors"
-              >
-                <Search size={22} />
-              </button>
               <button className="text-white/60 hover:text-amber-400 transition-colors">
                 <Heart size={22} />
               </button>

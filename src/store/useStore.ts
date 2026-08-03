@@ -33,18 +33,10 @@ interface StoreState {
     setCartOpen: (isOpen: boolean) => void;
     isAuthOpen: boolean;
     setAuthOpen: (isOpen: boolean) => void;
-    isSearchOpen: boolean;
-    setSearchOpen: (isOpen: boolean) => void;
     isMenuOpen: boolean;
     setMenuOpen: (isOpen: boolean) => void;
     cursorVariant: string;
     setCursorVariant: (variant: string) => void;
-  };
-  search: {
-    query: string;
-    setQuery: (query: string) => void;
-    results: Product[];
-    setResults: (results: Product[]) => void;
   };
 }
 
@@ -189,12 +181,6 @@ export const useStore = create<StoreState>((set, get) => ({
         ui: { ...state.ui, isAuthOpen: isOpen },
       }));
     },
-    isSearchOpen: false,
-    setSearchOpen: (isOpen) => {
-      set((state) => ({
-        ui: { ...state.ui, isSearchOpen: isOpen },
-      }));
-    },
     isMenuOpen: false,
     setMenuOpen: (isOpen) => {
       set((state) => ({
@@ -209,18 +195,4 @@ export const useStore = create<StoreState>((set, get) => ({
     },
   },
 
-  search: {
-    query: '',
-    setQuery: (query) => {
-      set((state) => ({
-        search: { ...state.search, query },
-      }));
-    },
-    results: [],
-    setResults: (results) => {
-      set((state) => ({
-        search: { ...state.search, results },
-      }));
-    },
-  },
 }));

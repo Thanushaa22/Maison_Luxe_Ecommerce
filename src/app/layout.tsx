@@ -7,7 +7,6 @@ import Footer from '@/components/ui/Footer';
 import CartDrawer from '@/components/ui/CartDrawer';
 import AuthModal from '@/components/ui/AuthModal';
 import AIFragranceAssistant from '@/components/ui/AIFragranceAssistant';
-import SmartSearch from '@/components/ui/SmartSearch';
 import { ToastProvider } from '@/components/ui/Toast';
 import ScrollToTop from '@/components/ui/ScrollToTop';
 
@@ -59,7 +58,6 @@ export default function RootLayout({
           <Navbar />
           <CartDrawer />
           <AuthModal />
-          <SmartSearch />
           <AIFragranceAssistant />
           <main>{children}</main>
           <Footer />

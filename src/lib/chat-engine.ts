@@ -148,9 +148,10 @@ function extractGender(query: string): 'men' | 'women' | 'unisex' | null {
 
 // ─── Extract Product Name ───
 function extractProductName(query: string): MockProduct | null {
-  const q = query.toLowerCase();
+  const normalize = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const q = normalize(query);
   for (const p of mockProducts) {
-    if (q.includes(p.name.toLowerCase())) return p;
+    if (q.includes(normalize(p.name))) return p;
   }
   return null;
 }
@@ -364,10 +365,10 @@ export function generateResponse(query: string, _history: string[] = []): ChatRe
     }
 
     case 'compare': {
-      const products = extractProductName(query);
-      // Try to find two products
-      const allNames = mockProducts.map(p => p.name.toLowerCase());
-      const found = mockProducts.filter(p => query.toLowerCase().includes(p.name.toLowerCase()));
+      // Normalize: remove accents for comparison matching
+      const normalize = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+      const qNorm = normalize(query);
+      const found = mockProducts.filter(p => qNorm.includes(normalize(p.name)));
 
       if (found.length >= 2) {
         const [p1, p2] = found;
