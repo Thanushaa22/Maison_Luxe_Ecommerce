@@ -70,7 +70,13 @@ export async function GET(request: NextRequest) {
           totalOrders: 156,
           totalCustomers: 89,
           totalProducts: 12,
-          recentOrders: [],
+          recentOrders: [
+            { id: 'ORD-001', total: 28000, status: 'DELIVERED', paymentMethod: 'card', paymentStatus: 'paid', createdAt: '2026-07-28T10:00:00Z', user: { name: 'Aarav Sharma', email: 'aarav@email.com' }, items: [] },
+            { id: 'ORD-002', total: 16200, status: 'SHIPPED', paymentMethod: 'card', paymentStatus: 'paid', createdAt: '2026-07-29T14:30:00Z', user: { name: 'Priya Patel', email: 'priya@email.com' }, items: [] },
+            { id: 'ORD-003', total: 13500, status: 'PROCESSING', paymentMethod: 'cod', paymentStatus: 'pending', createdAt: '2026-07-30T09:15:00Z', user: { name: 'Rahul Mehta', email: 'rahul@email.com' }, items: [] },
+            { id: 'ORD-004', total: 22500, status: 'PENDING', paymentMethod: 'card', paymentStatus: 'paid', createdAt: '2026-07-31T16:45:00Z', user: { name: 'Sneha Gupta', email: 'sneha@email.com' }, items: [] },
+            { id: 'ORD-005', total: 31800, status: 'DELIVERED', paymentMethod: 'card', paymentStatus: 'paid', createdAt: '2026-08-01T11:20:00Z', user: { name: 'Vikram Singh', email: 'vikram@email.com' }, items: [] },
+          ],
           monthlyRevenue: [
             { month: 'Jan', revenue: 65000 },
             { month: 'Feb', revenue: 72000 },
@@ -80,7 +86,11 @@ export async function GET(request: NextRequest) {
             { month: 'Jun', revenue: 94600 },
           ],
           bestSelling: [],
-          lowStockProducts: [],
+          lowStockProducts: [
+            { id: '1', name: 'Noir Cristal', stock: 3 },
+            { id: '3', name: 'Nocturne Jardin', stock: 5 },
+            { id: '8', name: 'Nuit Parisienne', stock: 7 },
+          ],
         },
       });
     }
