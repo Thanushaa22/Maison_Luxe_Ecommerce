@@ -3,14 +3,36 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { Sparkles, Send, X, Bot, User, RotateCcw, ChevronRight, MessageSquare, ListChecks } from "lucide-react";
+import { Sparkles, Send, X, Bot, User, RotateCcw, ChevronRight, MessageSquare, ListChecks, GitCompare } from "lucide-react";
 import Image from "next/image";
 
-/* ─── Chat Types ─── */
+/* ─── Types ─── */
+interface Product {
+  id: string;
+  name: string;
+  brand: string;
+  price: number;
+  image: string;
+  matchScore: number;
+  topNotes: string;
+  rating: number;
+  stock: number;
+  sizes: string[];
+  reason: string;
+}
+
+interface Comparison {
+  product1: { name: string; price: number; notes: string; rating: number; stock: number; sizes: string[] };
+  product2: { name: string; price: number; notes: string; rating: number; stock: number; sizes: string[] };
+}
+
 interface Message {
   role: "user" | "assistant";
   content: string;
-  products?: Array<{ id: string; name: string; brand: string; price: number; image?: string; matchScore?: number; topNotes?: string; reason?: string }>;
+  products?: Product[];
+  comparison?: Comparison;
+  suggestions?: string[];
+  timestamp?: number;
 }
 
 /* ─── Quiz Data ─── */
@@ -75,10 +97,19 @@ function getRecommendations(answers: QuizAnswer) {
   ];
 }
 
+const initialSuggestions = [
+  "Recommend a perfume for a wedding",
+  "I need something under ₹10,000",
+  "Fresh fragrance for summer",
+  "Gift for my girlfriend",
+  "Compare Noir Cristal vs Lumiere Solaire",
+  "What is your return policy?",
+];
+
 /* ─── Main Component ─── */
 export default function AIFragranceAssistant() {
   const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"quiz" | "chat">("quiz");
+  const [activeTab, setActiveTab] = useState<"quiz" | "chat" | "compare">("chat");
 
   /* Quiz State */
   const [quizStep, setQuizStep] = useState(0);
@@ -87,7 +118,7 @@ export default function AIFragranceAssistant() {
 
   /* Chat State */
   const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: "Hi! I'm your fragrance consultant. Tell me about the mood, occasion, or notes you're drawn to, and I'll suggest the perfect scent." },
+    { role: "assistant", content: "Welcome to MAISON LUXE. I am your personal fragrance consultant. I can help you discover the perfect perfume, compare products, check orders, or answer any questions about our collection. What brings you here today?", suggestions: initialSuggestions, timestamp: Date.now() },
   ]);
   const [chatInput, setChatInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
@@ -106,28 +137,58 @@ export default function AIFragranceAssistant() {
   const resetQuiz = () => { setQuizStep(0); setQuizAnswers({}); setQuizResult(null); };
 
   /* ─── Chat Handler ─── */
-  const handleChatSend = async () => {
-    if (!chatInput.trim() || chatLoading) return;
-    const userMsg = chatInput.trim();
+  const handleChatSend = async (overrideText?: string) => {
+    const text = overrideText || chatInput.trim();
+    if (!text || chatLoading) return;
     setChatInput("");
-    setMessages((prev) => [...prev, { role: "user", content: userMsg }]);
+    setMessages(prev => [...prev, { role: "user", content: text, timestamp: Date.now() }]);
     setChatLoading(true);
+
     try {
       const res = await fetch("/api/ai/fragrance-assistant", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userMsg }),
+        body: JSON.stringify({ message: text, history: messages.map(m => m.content) }),
       });
       const data = await res.json();
-      setMessages((prev) => [...prev, { role: "assistant", content: data.message || "I couldn't process that. Please try again.", products: data.products }]);
+      setMessages(prev => [...prev, {
+        role: "assistant",
+        content: data.message || "I could not process that. Please try again.",
+        products: data.products,
+        comparison: data.comparison,
+        suggestions: data.suggestions,
+        timestamp: Date.now(),
+      }]);
     } catch {
-      setMessages((prev) => [...prev, { role: "assistant", content: "Something went wrong. Please try again later." }]);
+      setMessages(prev => [...prev, {
+        role: "assistant",
+        content: "I apologize, but I am experiencing a technical issue. Please try again in a moment.",
+        suggestions: ["Try again", "Show me bestsellers"],
+        timestamp: Date.now(),
+      }]);
     } finally {
       setChatLoading(false);
     }
   };
 
-  const resetAll = () => { resetQuiz(); setMessages([{ role: "assistant", content: "Hi! I am your fragrance consultant. Tell me about the mood, occasion, or notes you are drawn to, and I will suggest the perfect scent." }]); setActiveTab("quiz"); };
+  const resetAll = () => {
+    resetQuiz();
+    setMessages([{
+      role: "assistant",
+      content: "Welcome to MAISON LUXE. I am your personal fragrance consultant. I can help you discover the perfect perfume, compare products, check orders, or answer any questions about our collection. What brings you here today?",
+      suggestions: initialSuggestions,
+      timestamp: Date.now(),
+    }]);
+    setActiveTab("chat");
+  };
+
+  const renderStars = (rating: number) => (
+    <div className="flex gap-0.5">
+      {[1,2,3,4,5].map(s => (
+        <span key={s} className={`text-[9px] ${s <= Math.round(rating) ? 'text-amber-400' : 'text-white/15'}`}>★</span>
+      ))}
+    </div>
+  );
 
   return (
     <>
@@ -159,7 +220,7 @@ export default function AIFragranceAssistant() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="fixed bottom-24 right-6 z-[140] w-[400px] max-w-[calc(100vw-3rem)] h-[560px] bg-black/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+            className="fixed bottom-24 right-6 z-[140] w-[420px] max-w-[calc(100vw-3rem)] h-[600px] max-h-[calc(100vh-8rem)] bg-black/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
           >
             {/* Header */}
             <div className="px-5 py-4 border-b border-white/5">
@@ -170,7 +231,7 @@ export default function AIFragranceAssistant() {
                   </div>
                   <div>
                     <h3 className="text-white text-sm font-serif tracking-wider">Fragrance Assistant</h3>
-                    <p className="text-amber-400/60 text-[10px] tracking-widest">AI-POWERED</p>
+                    <p className="text-amber-400/60 text-[10px] tracking-widest">AI-POWERED CONSULTANT</p>
                   </div>
                 </div>
                 <button onClick={resetAll} className="text-white/30 hover:text-white/60 transition-colors" title="Reset">
@@ -180,42 +241,147 @@ export default function AIFragranceAssistant() {
 
               {/* Tab Switcher */}
               <div className="flex gap-1 bg-white/5 rounded-lg p-1">
-                <button
-                  onClick={() => setActiveTab("quiz")}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-xs font-body tracking-wider transition-all ${
-                    activeTab === "quiz" ? "bg-amber-500/20 text-amber-400" : "text-white/40 hover:text-white/60"
-                  }`}
-                >
-                  <ListChecks size={14} />
-                  Quiz
-                </button>
-                <button
-                  onClick={() => setActiveTab("chat")}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-xs font-body tracking-wider transition-all ${
-                    activeTab === "chat" ? "bg-amber-500/20 text-amber-400" : "text-white/40 hover:text-white/60"
-                  }`}
-                >
-                  <MessageSquare size={14} />
-                  Chat
-                </button>
+                {[
+                  { key: "chat" as const, label: "Chat", icon: MessageSquare },
+                  { key: "quiz" as const, label: "Quiz", icon: ListChecks },
+                  { key: "compare" as const, label: "Compare", icon: GitCompare },
+                ].map(tab => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setActiveTab(tab.key)}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-xs font-body tracking-wider transition-all ${
+                      activeTab === tab.key ? "bg-amber-500/20 text-amber-400" : "text-white/40 hover:text-white/60"
+                    }`}
+                  >
+                    <tab.icon size={13} />
+                    {tab.label}
+                  </button>
+                ))}
               </div>
             </div>
 
             {/* Content */}
             <div className="flex-1 overflow-y-auto">
               <AnimatePresence mode="wait">
+                {/* ─── Chat Tab ─── */}
+                {activeTab === "chat" && (
+                  <motion.div key="chat" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col h-full">
+                    <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+                      {messages.map((msg, i) => (
+                        <div key={i} className="space-y-2">
+                          {/* Message bubble */}
+                          <div className={`flex gap-2.5 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                            {msg.role === "assistant" && (
+                              <div className="w-6 h-6 rounded-full bg-amber-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <Bot size={12} className="text-amber-400" />
+                              </div>
+                            )}
+                            <div className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed whitespace-pre-line ${
+                              msg.role === "user" ? "bg-amber-500/20 text-white/90 rounded-tr-sm" : "bg-white/5 text-white/70 rounded-tl-sm"
+                            }`}>
+                              {msg.content}
+                            </div>
+                            {msg.role === "user" && (
+                              <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <User size={12} className="text-white/60" />
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Products */}
+                          {msg.products && msg.products.length > 0 && (
+                            <div className="ml-8 space-y-1.5">
+                              {msg.products.map((p) => (
+                                <Link key={p.id} href={`/product/${p.id}`} onClick={() => setIsOpen(false)} className="block bg-white/5 rounded-xl p-2.5 border border-white/5 hover:border-amber-500/20 transition-all group">
+                                  <div className="flex items-start gap-2.5">
+                                    {p.image && (
+                                      <div className="w-11 h-14 relative rounded-lg overflow-hidden flex-shrink-0 bg-white/5">
+                                        <Image src={p.image} alt={p.name} fill className="object-cover" />
+                                      </div>
+                                    )}
+                                    <div className="min-w-0 flex-1">
+                                      <div className="flex items-center gap-2 mb-0.5">
+                                        <p className="text-white text-xs font-medium truncate">{p.name}</p>
+                                        {p.matchScore > 0 && (
+                                          <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 flex-shrink-0 font-medium">{p.matchScore}%</span>
+                                        )}
+                                      </div>
+                                      <p className="text-white/30 text-[10px] mb-1">{p.brand}</p>
+                                      <div className="flex items-center gap-2 mb-1">
+                                        {renderStars(p.rating)}
+                                        <span className="text-white/20 text-[9px]">{p.rating}</span>
+                                      </div>
+                                      {p.topNotes && <p className="text-white/25 text-[10px] truncate">Notes: {p.topNotes}</p>}
+                                    </div>
+                                    <div className="text-right flex-shrink-0">
+                                      <p className="text-amber-400 text-xs font-serif">₹{p.price.toLocaleString("en-IN")}</p>
+                                      <p className={`text-[9px] mt-1 ${p.stock > 0 ? 'text-green-400/60' : 'text-red-400/60'}`}>
+                                        {p.stock > 0 ? `${p.stock} in stock` : 'Out of stock'}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  {p.reason && (
+                                    <p className="text-white/20 text-[10px] mt-1.5 pl-[52px]">{p.reason}</p>
+                                  )}
+                                  <div className="flex gap-1 mt-1.5 pl-[52px]">
+                                    {p.sizes.map(s => (
+                                      <span key={s} className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-white/30">{s}</span>
+                                    ))}
+                                  </div>
+                                </Link>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Comparison */}
+                          {msg.comparison && (
+                            <div className="ml-8">
+                              <ComparisonCard comparison={msg.comparison} />
+                            </div>
+                          )}
+
+                          {/* Suggestions */}
+                          {msg.suggestions && msg.suggestions.length > 0 && i === messages.length - 1 && (
+                            <div className="ml-8 flex flex-wrap gap-1.5">
+                              {msg.suggestions.map((s, j) => (
+                                <button
+                                  key={j}
+                                  onClick={() => handleChatSend(s)}
+                                  className="text-[10px] px-2.5 py-1.5 rounded-full border border-amber-500/20 text-amber-400/70 hover:bg-amber-500/10 hover:border-amber-500/30 transition-all"
+                                >
+                                  {s}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+
+                      {/* Typing indicator */}
+                      {chatLoading && (
+                        <div className="flex gap-2.5">
+                          <div className="w-6 h-6 rounded-full bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+                            <Bot size={12} className="text-amber-400" />
+                          </div>
+                          <div className="bg-white/5 rounded-2xl rounded-tl-sm px-4 py-3">
+                            <div className="flex gap-1">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-400/40 animate-bounce" />
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-400/40 animate-bounce [animation-delay:0.1s]" />
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-400/40 animate-bounce [animation-delay:0.2s]" />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      <div ref={messagesEndRef} />
+                    </div>
+                  </motion.div>
+                )}
+
                 {/* ─── Quiz Tab ─── */}
                 {activeTab === "quiz" && (
-                  <motion.div
-                    key="quiz"
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 10 }}
-                    className="p-5"
-                  >
+                  <motion.div key="quiz" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-5">
                     {!quizResult ? (
                       <>
-                        {/* Progress */}
                         <div className="flex gap-1 mb-5">
                           {questions.map((_, i) => (
                             <div key={i} className={`h-1 flex-1 rounded-full transition-all ${i <= quizStep ? "bg-amber-500" : "bg-white/10"}`} />
@@ -225,11 +391,7 @@ export default function AIFragranceAssistant() {
                         <h4 className="font-display text-xl text-white mb-5">{questions[quizStep].title}</h4>
                         <div className="grid grid-cols-2 gap-2.5">
                           {questions[quizStep].options.map((opt) => (
-                            <button
-                              key={opt.value}
-                              onClick={() => handleQuizAnswer(questions[quizStep].key, opt.value)}
-                              className="p-3.5 rounded-xl border border-white/10 bg-white/5 hover:border-amber-500/30 hover:bg-amber-500/5 transition-all text-left group"
-                            >
+                            <button key={opt.value} onClick={() => handleQuizAnswer(questions[quizStep].key, opt.value)} className="p-3.5 rounded-xl border border-white/10 bg-white/5 hover:border-amber-500/30 hover:bg-amber-500/5 transition-all text-left group">
                               <span className="text-white/70 font-body text-sm group-hover:text-amber-400 transition-colors">{opt.label}</span>
                             </button>
                           ))}
@@ -244,12 +406,7 @@ export default function AIFragranceAssistant() {
                         </div>
                         <div className="space-y-2.5">
                           {quizResult.map((rec) => (
-                            <Link
-                              key={rec.id}
-                              href={`/product/${rec.id}`}
-                              onClick={() => setIsOpen(false)}
-                              className="block p-3.5 rounded-xl border border-white/10 bg-white/5 hover:border-amber-500/30 hover:bg-amber-500/5 transition-all group"
-                            >
+                            <Link key={rec.id} href={`/product/${rec.id}`} onClick={() => setIsOpen(false)} className="block p-3.5 rounded-xl border border-white/10 bg-white/5 hover:border-amber-500/30 hover:bg-amber-500/5 transition-all group">
                               <div className="flex items-center justify-between">
                                 <div>
                                   <p className="text-white font-display text-sm group-hover:text-amber-400 transition-colors">{rec.name}</p>
@@ -260,102 +417,41 @@ export default function AIFragranceAssistant() {
                             </Link>
                           ))}
                         </div>
-                        <button
-                          onClick={resetQuiz}
-                          className="mt-4 w-full py-2.5 border border-white/10 text-white/50 font-body text-xs rounded-xl hover:border-amber-500/30 hover:text-amber-400 transition-all flex items-center justify-center gap-2"
-                        >
-                          <RotateCcw size={12} />
-                          Start Over
+                        <button onClick={resetQuiz} className="mt-4 w-full py-2.5 border border-white/10 text-white/50 font-body text-xs rounded-xl hover:border-amber-500/30 hover:text-amber-400 transition-all flex items-center justify-center gap-2">
+                          <RotateCcw size={12} /> Start Over
                         </button>
                       </motion.div>
                     )}
                   </motion.div>
                 )}
 
-                {/* ─── Chat Tab ─── */}
-                {activeTab === "chat" && (
-                  <motion.div
-                    key="chat"
-                    initial={{ opacity: 0, x: 10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -10 }}
-                    className="flex flex-col h-full"
-                  >
-                    <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
-                      {messages.map((msg, i) => (
-                        <div key={i} className={`flex gap-2.5 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                          {msg.role === "assistant" && (
-                            <div className="w-6 h-6 rounded-full bg-amber-500/10 flex items-center justify-center flex-shrink-0 mt-1">
-                              <Bot size={12} className="text-amber-400" />
-                            </div>
-                          )}
-                          <div className={`max-w-[78%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed ${
-                            msg.role === "user" ? "bg-amber-500/20 text-white/90 rounded-tr-sm" : "bg-white/5 text-white/70 rounded-tl-sm"
-                          }`}>
-                            {msg.content}
-                            {msg.products && msg.products.length > 0 && (
-                              <div className="mt-2.5 space-y-1.5">
-                                {msg.products.map((p) => (
-                                  <Link key={p.id} href={`/product/${p.id}`} onClick={() => setIsOpen(false)} className="block bg-white/5 rounded-lg p-2.5 border border-white/5 hover:border-amber-500/20 transition-colors">
-                                    <div className="flex items-center gap-2.5">
-                                      {p.image && (
-                                        <div className="w-9 h-11 relative rounded overflow-hidden flex-shrink-0">
-                                          <Image src={p.image} alt={p.name} fill className="object-cover" />
-                                        </div>
-                                      )}
-                                      <div className="min-w-0 flex-1">
-                                        <div className="flex items-center gap-2">
-                                          <p className="text-white text-xs truncate font-medium">{p.name}</p>
-                                          {p.matchScore && (
-                                            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 flex-shrink-0">
-                                              {p.matchScore}%
-                                            </span>
-                                          )}
-                                        </div>
-                                        <p className="text-white/30 text-[10px]">{p.brand}</p>
-                                        {p.topNotes && (
-                                          <p className="text-white/25 text-[10px] mt-0.5 truncate">{p.topNotes}</p>
-                                        )}
-                                      </div>
-                                      <p className="text-amber-400 text-xs font-serif flex-shrink-0">₹{p.price.toLocaleString("en-IN")}</p>
-                                    </div>
-                                    {p.reason && (
-                                      <p className="text-white/20 text-[10px] mt-1.5 pl-[46px]">{p.reason}</p>
-                                    )}
-                                  </Link>
-                                ))}
-                              </div>
-                            )}
+                {/* ─── Compare Tab ─── */}
+                {activeTab === "compare" && (
+                  <motion.div key="compare" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-5">
+                    <p className="text-white/40 text-xs font-body mb-4">Select two fragrances to compare side by side.</p>
+                    <div className="space-y-2">
+                      {[
+                        { q: "Compare Noir Cristal vs Lumiere Solaire", label: "Noir Cristal vs Lumiere Solaire" },
+                        { q: "Compare Noir Profond vs Eclat d'Or", label: "Noir Profond vs Eclat d'Or" },
+                        { q: "Compare Jour Eclat vs Azure Coast", label: "Jour Eclat vs Azure Coast" },
+                        { q: "Compare Nocturne Jardin vs Noir Cristal", label: "Nocturne Jardin vs Noir Cristal" },
+                      ].map((item) => (
+                        <button key={item.q} onClick={() => { setActiveTab("chat"); handleChatSend(item.q); }} className="w-full p-3 rounded-xl border border-white/10 bg-white/5 hover:border-amber-500/30 hover:bg-amber-500/5 transition-all text-left group flex items-center justify-between">
+                          <div className="flex items-center gap-2.5">
+                            <GitCompare size={14} className="text-amber-400/50" />
+                            <span className="text-white/70 text-xs font-body group-hover:text-amber-400 transition-colors">{item.label}</span>
                           </div>
-                          {msg.role === "user" && (
-                            <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0 mt-1">
-                              <User size={12} className="text-white/60" />
-                            </div>
-                          )}
-                        </div>
+                          <ChevronRight size={14} className="text-white/20 group-hover:text-amber-400 transition-colors" />
+                        </button>
                       ))}
-                      {chatLoading && (
-                        <div className="flex gap-2.5">
-                          <div className="w-6 h-6 rounded-full bg-amber-500/10 flex items-center justify-center flex-shrink-0">
-                            <Bot size={12} className="text-amber-400" />
-                          </div>
-                          <div className="bg-white/5 rounded-2xl rounded-tl-sm px-3.5 py-2.5">
-                            <div className="flex gap-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-amber-400/40 animate-bounce" />
-                              <span className="w-1.5 h-1.5 rounded-full bg-amber-400/40 animate-bounce [animation-delay:0.1s]" />
-                              <span className="w-1.5 h-1.5 rounded-full bg-amber-400/40 animate-bounce [animation-delay:0.2s]" />
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                      <div ref={messagesEndRef} />
                     </div>
+                    <p className="text-white/20 text-[10px] font-body mt-4 text-center">Or type two product names in the Chat tab</p>
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
 
-            {/* Chat Input — always visible on chat tab */}
+            {/* Chat Input */}
             {activeTab === "chat" && (
               <div className="px-4 py-3 border-t border-white/5">
                 <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-3.5 py-2 focus-within:border-amber-500/40 transition-colors">
@@ -363,14 +459,10 @@ export default function AIFragranceAssistant() {
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleChatSend()}
-                    placeholder="Describe your perfect fragrance..."
+                    placeholder="Ask about fragrances, orders, gifts..."
                     className="flex-1 bg-transparent text-white text-xs placeholder:text-white/30 focus:outline-none"
                   />
-                  <button
-                    onClick={handleChatSend}
-                    disabled={!chatInput.trim() || chatLoading}
-                    className="text-amber-400 hover:text-amber-300 disabled:text-white/20 transition-colors"
-                  >
+                  <button onClick={() => handleChatSend()} disabled={!chatInput.trim() || chatLoading} className="text-amber-400 hover:text-amber-300 disabled:text-white/20 transition-colors">
                     <Send size={14} />
                   </button>
                 </div>
@@ -380,5 +472,34 @@ export default function AIFragranceAssistant() {
         )}
       </AnimatePresence>
     </>
+  );
+}
+
+/* ─── Comparison Card ─── */
+function ComparisonCard({ comparison }: { comparison: Comparison }) {
+  const { product1: p1, product2: p2 } = comparison;
+  const rows = [
+    { label: "Price", v1: `₹${p1.price.toLocaleString("en-IN")}`, v2: `₹${p2.price.toLocaleString("en-IN")}` },
+    { label: "Rating", v1: `${p1.rating}/5`, v2: `${p2.rating}/5` },
+    { label: "Notes", v1: p1.notes.slice(0, 40), v2: p2.notes.slice(0, 40) },
+    { label: "Sizes", v1: p1.sizes.join(", "), v2: p2.sizes.join(", ") },
+    { label: "Stock", v1: p1.stock > 0 ? `${p1.stock} units` : "Out of stock", v2: p2.stock > 0 ? `${p2.stock} units` : "Out of stock" },
+  ];
+
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/5 overflow-hidden text-xs">
+      <div className="grid grid-cols-3 bg-white/5 border-b border-white/5">
+        <div className="p-2.5 text-white/30 font-body" />
+        <div className="p-2.5 text-amber-400 font-display text-center">{p1.name}</div>
+        <div className="p-2.5 text-amber-400 font-display text-center">{p2.name}</div>
+      </div>
+      {rows.map((row, i) => (
+        <div key={i} className={`grid grid-cols-3 ${i < rows.length - 1 ? 'border-b border-white/5' : ''}`}>
+          <div className="p-2.5 text-white/30 font-body">{row.label}</div>
+          <div className="p-2.5 text-white/70 font-body text-center">{row.v1}</div>
+          <div className="p-2.5 text-white/70 font-body text-center">{row.v2}</div>
+        </div>
+      ))}
+    </div>
   );
 }
