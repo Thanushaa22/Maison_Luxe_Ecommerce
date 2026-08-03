@@ -10,7 +10,7 @@ interface Order {
   total: number;
   status: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
   createdAt: string;
-  items?: { name: string; quantity: number; size: string; price: number }[];
+  items?: { name?: string; product?: { name: string; images?: string[] }; quantity: number; size: string; price: number }[];
 }
 
 const statusConfig = {
@@ -115,10 +115,10 @@ export default function OrdersPage() {
                           <div key={i} className="flex items-center justify-between text-sm">
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500/10 to-amber-700/5 border border-amber-500/10 flex items-center justify-center">
-                                <span className="text-amber-500/40 font-display text-xs">{item.name.charAt(0)}</span>
+                                <span className="text-amber-500/40 font-display text-xs">{(item.name || item.product?.name || 'P').charAt(0)}</span>
                               </div>
                               <div>
-                                <p className="text-white/80 font-body">{item.name}</p>
+                                <p className="text-white/80 font-body">{item.name || item.product?.name || 'Product'}</p>
                                 <p className="text-white/40 text-xs font-body">{item.size} x {item.quantity}</p>
                               </div>
                             </div>
