@@ -10,7 +10,6 @@ import AIFragranceAssistant from '@/components/ui/AIFragranceAssistant';
 import SmartSearch from '@/components/ui/SmartSearch';
 import { ToastProvider } from '@/components/ui/Toast';
 import ScrollToTop from '@/components/ui/ScrollToTop';
-import FragranceFinder from '@/components/ui/FragranceFinder';
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -65,7 +64,6 @@ export default function RootLayout({
           <main>{children}</main>
           <Footer />
           <ScrollToTop />
-          <FragranceFinder />
         </ToastProvider>
       </body>
     </html>
