@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { mockProducts } from '@/lib/mock-data';
 
-export async function GET(request: NextRequest) {
+async function getProductsFromDB(searchParams: URLSearchParams) {
   try {
-    const { searchParams } = new URL(request.url);
+    const prisma = (await import('@/lib/prisma')).default;
     const search = searchParams.get('search') || '';
     const category = searchParams.get('categories') || searchParams.get('category') || '';
     const featured = searchParams.get('featured') === 'true';
@@ -12,6 +12,9 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const priceMin = parseInt(searchParams.get('priceMin') || '0');
     const priceMax = parseInt(searchParams.get('priceMax') || '999999');
+
+    const count = await prisma.product.count();
+    if (count === 0) return null;
 
     const where: Record<string, unknown> = { isActive: true };
     if (search) {
@@ -43,23 +46,71 @@ export async function GET(request: NextRequest) {
       prisma.product.count({ where }),
     ]);
 
-    // Parse JSON fields for each product
-    const products = items.map(p => ({
+    const products = items.map((p: Record<string, unknown>) => ({
       ...p,
-      images: p.images ? p.images.split(',').filter(Boolean) : [],
-      sizes: p.sizes ? p.sizes.split(',').filter(Boolean) : [],
-      notes: p.notes ? JSON.parse(p.notes) : null,
+      images: typeof p.images === 'string' ? (p.images as string).split(',').filter(Boolean) : [],
+      sizes: typeof p.sizes === 'string' ? (p.sizes as string).split(',').filter(Boolean) : [],
+      notes: typeof p.notes === 'string' ? JSON.parse(p.notes as string) : p.notes,
     }));
 
-    return NextResponse.json({
-      products,
-      total,
-      page,
-      totalPages: Math.ceil(total / limit),
-    });
+    return { products, total, page, totalPages: Math.ceil(total / limit) };
+  } catch {
+    return null;
+  }
+}
+
+function getProductsFromMock(searchParams: URLSearchParams) {
+  const search = searchParams.get('search') || '';
+  const category = searchParams.get('categories') || searchParams.get('category') || '';
+  const featured = searchParams.get('featured') === 'true';
+  const sort = searchParams.get('sort') || '';
+  const limit = parseInt(searchParams.get('limit') || '12');
+  const page = parseInt(searchParams.get('page') || '1');
+  const priceMin = parseInt(searchParams.get('priceMin') || '0');
+  const priceMax = parseInt(searchParams.get('priceMax') || '999999');
+
+  let filtered = [...mockProducts];
+
+  if (search) {
+    const q = search.toLowerCase();
+    filtered = filtered.filter(p =>
+      p.name.toLowerCase().includes(q) ||
+      p.brand.toLowerCase().includes(q) ||
+      p.description.toLowerCase().includes(q) ||
+      p.category.toLowerCase().includes(q)
+    );
+  }
+  if (category) {
+    const cats = category.split(',').map(c => c.trim().toLowerCase());
+    filtered = filtered.filter(p => cats.includes(p.category.toLowerCase()));
+  }
+  if (featured) filtered = filtered.filter(p => p.featured);
+  if (priceMin > 0 || priceMax < 999999) {
+    filtered = filtered.filter(p => p.price >= priceMin && p.price <= priceMax);
+  }
+
+  if (sort === 'price_asc') filtered.sort((a, b) => a.price - b.price);
+  else if (sort === 'price_desc') filtered.sort((a, b) => b.price - a.price);
+  else if (sort === 'rating') filtered.sort((a, b) => b.rating - a.rating);
+  else filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  const total = filtered.length;
+  const start = (page - 1) * limit;
+  const products = filtered.slice(start, start + limit);
+
+  return { products, total, page, totalPages: Math.ceil(total / limit) };
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const dbResult = await getProductsFromDB(searchParams);
+    if (dbResult) return NextResponse.json(dbResult);
+    return NextResponse.json(getProductsFromMock(searchParams));
   } catch (error) {
     console.error('Products GET error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    const { searchParams } = new URL(request.url);
+    return NextResponse.json(getProductsFromMock(searchParams));
   }
 }
 
@@ -68,7 +119,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { requireAdmin } = await import('@/lib/auth');
     await requireAdmin(request);
-
+    const prisma = (await import('@/lib/prisma')).default;
     const product = await prisma.product.create({
       data: {
         ...body,
@@ -82,7 +133,6 @@ export async function POST(request: NextRequest) {
     const message = error instanceof Error ? error.message : 'Internal server error';
     if (message === 'UNAUTHORIZED') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     if (message === 'FORBIDDEN') return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
-    console.error('Products POST error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

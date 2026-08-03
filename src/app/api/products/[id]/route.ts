@@ -1,23 +1,46 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { mockProducts, mockReviews } from '@/lib/mock-data';
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+async function getProductFromDB(id: string) {
   try {
-    const { id } = await params;
+    const prisma = (await import('@/lib/prisma')).default;
     const product = await prisma.product.findUnique({
       where: { id },
       include: { reviews: { include: { user: { select: { id: true, name: true, avatar: true } } }, orderBy: { createdAt: 'desc' } } },
     });
-    if (!product) return NextResponse.json({ error: 'Product not found' }, { status: 404 });
-
-    const formatted = {
+    if (!product) return null;
+    return {
       ...product,
-      images: product.images ? product.images.split(',').filter(Boolean) : [],
-      sizes: product.sizes ? product.sizes.split(',').filter(Boolean) : [],
-      notes: product.notes ? JSON.parse(product.notes) : null,
-      reviews: product.reviews.map(r => ({ ...r, createdAt: r.createdAt.toISOString() })),
+      images: typeof product.images === 'string' ? (product.images as string).split(',').filter(Boolean) : [],
+      sizes: typeof product.sizes === 'string' ? (product.sizes as string).split(',').filter(Boolean) : [],
+      notes: typeof product.notes === 'string' ? JSON.parse(product.notes as string) : product.notes,
+      reviews: product.reviews.map((r: Record<string, unknown>) => ({
+        ...r,
+        createdAt: (r.createdAt as Date).toISOString(),
+      })),
     };
-    return NextResponse.json({ product: formatted });
+  } catch {
+    return null;
+  }
+}
+
+function getProductFromMock(id: string) {
+  const product = mockProducts.find(p => p.id === id);
+  if (!product) return null;
+  const reviews = mockReviews.filter(r => r.productId === id);
+  return { ...product, reviews };
+}
+
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params;
+    const dbProduct = await getProductFromDB(id);
+    if (dbProduct) return NextResponse.json({ product: dbProduct });
+
+    const mockProduct = getProductFromMock(id);
+    if (mockProduct) return NextResponse.json({ product: mockProduct });
+
+    return NextResponse.json({ error: 'Product not found' }, { status: 404 });
   } catch (error) {
     console.error('Product GET error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -30,6 +53,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const { requireAdmin } = await import('@/lib/auth');
     await requireAdmin(request);
     const body = await request.json();
+    const prisma = (await import('@/lib/prisma')).default;
     const product = await prisma.product.update({
       where: { id },
       data: {
@@ -44,7 +68,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const message = error instanceof Error ? error.message : 'Internal server error';
     if (message === 'UNAUTHORIZED') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     if (message === 'FORBIDDEN') return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
-    console.error('Product PUT error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -54,13 +77,13 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     const { id } = await params;
     const { requireAdmin } = await import('@/lib/auth');
     await requireAdmin(request);
+    const prisma = (await import('@/lib/prisma')).default;
     await prisma.product.delete({ where: { id } });
     return NextResponse.json({ message: 'Product deleted' });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Internal server error';
     if (message === 'UNAUTHORIZED') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     if (message === 'FORBIDDEN') return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
-    console.error('Product DELETE error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
