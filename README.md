@@ -15,13 +15,24 @@
 ---
 
 A premium 3D perfume e-commerce experience built with Next.js, React Three Fiber, and Framer Motion.
-Immersive product visualization, cinematic video backgrounds, and a dark luxury aesthetic.
+Features an AI-powered shopping assistant with semantic search, product comparison, and luxury consultant personality.
 
 </div>
 
 ---
 
 ## ✨ Features
+
+### 🤖 AI Shopping Assistant
+- **RAG Pipeline** — Intent detection → database search → context building → response generation
+- **18+ Intent Types** — recommend, compare, order tracking, FAQs, gift finding, size help
+- **Semantic Search** — TF-IDF vectorization with synonym expansion and cosine similarity
+- **Product Comparison** — side-by-side tables with price, notes, ratings, stock
+- **Smart Filters** — extracts budget, occasion, season, gender, and notes from natural language
+- **FAQ Support** — shipping, returns, payments, gift wrapping, coupons
+- **Conversation Memory** — maintains context across messages
+- **Quick Suggestions** — clickable chips on every response
+- **3 Modes** — Chat, Quiz, Compare tabs in one unified panel
 
 ### 🛍️ E-Commerce
 - **12 luxury fragrances** with detailed product pages
@@ -30,21 +41,19 @@ Immersive product visualization, cinematic video backgrounds, and a dark luxury 
 - **Checkout flow** — multi-step form with Card & Cash on Delivery
 - **Order history** — track past orders with status badges
 - **Wishlist** — save favorites across sessions
+- **User reviews** — star ratings, verified badges, helpful votes
+- **Back-in-stock alerts** — email signup for sold-out items
 
 ### 🎨 Visual Experience
 - **3D product scenes** — interactive rotating bottles with React Three Fiber
 - **Cinematic videos** — hero background, showroom ambiance, brand story
+- **Diamond cursor** — custom sharp cursor with crosshair hover and gold glow
 - **Framer Motion animations** — scroll reveals, page transitions, micro-interactions
 - **Dark luxury aesthetic** — gold accents, glass morphism, ambient lighting
 - **Image lightbox** — zoom into product photos
-
-### 🤖 Smart Features
-- **AI Fragrance Finder** — quiz-based recommendation engine
-- **Smart Search** — instant search with keyboard shortcut (⌘K)
 - **Toast notifications** — elegant feedback for cart/wishlist actions
 - **Recently viewed** — localStorage-based browsing history
 - **Share button** — native share API with clipboard fallback
-- **Back-in-stock alerts** — email signup for sold-out items
 
 ### 📱 Responsive
 - Mobile-first design with hamburger menu
@@ -64,8 +73,45 @@ Immersive product visualization, cinematic video backgrounds, and a dark luxury 
 | **Post-Processing** | @react-three/postprocessing (Bloom, Vignette) |
 | **Animations** | Framer Motion |
 | **State** | Zustand (with localStorage persistence) |
+| **AI Engine** | TF-IDF Semantic Search (no API key needed) |
 | **Icons** | Lucide React |
 | **Deployment** | Vercel |
+
+---
+
+## 🤖 AI Assistant Architecture
+
+```
+User Query
+    ↓
+Intent Detection (18+ intents)
+    ↓
+Smart Extraction (budget, notes, occasion, season, gender)
+    ↓
+Database Search (semantic + filter)
+    ↓
+Context Building (product knowledge)
+    ↓
+Response Generation (personalized, elegant)
+    ↓
+Frontend Display (products, comparison, suggestions)
+```
+
+### Supported Queries
+
+| Query Type | Example | Response |
+|-----------|---------|----------|
+| **Recommend** | "Recommend a perfume for a wedding" | Filtered products with match scores |
+| **Budget** | "Under ₹10,000" | Products sorted by price |
+| **Notes** | "I love vanilla and rose" | Products with matching notes |
+| **Occasion** | "Something for the office" | Occasion-appropriate fragrances |
+| **Compare** | "Compare Noir Cristal vs Lumiere Solaire" | Side-by-side comparison table |
+| **Gift** | "Gift for my girlfriend" | Curated gift recommendations |
+| **Season** | "Fresh fragrance for summer" | Season-appropriate picks |
+| **Order** | "Where is my order?" | Order tracking guidance |
+| **FAQ** | "What is your return policy?" | Policy information |
+| **Stock** | "Is Noir Cristal in stock?" | Stock availability |
+| **Size** | "Which size should I get?" | Size guide |
 
 ---
 
@@ -93,38 +139,56 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ```
 src/
-├── app/                    # Next.js App Router pages
-│   ├── page.tsx            # Landing page with video hero
-│   ├── collection/         # Product catalog with filters
-│   ├── product/[id]/       # Product detail with 3D scene
-│   ├── showroom/           # 3D CSS perspective gallery
-│   ├── checkout/           # Multi-step checkout
-│   ├── orders/             # Order history
-│   ├── wishlist/           # Saved items
-│   ├── contact/            # Contact page
-│   └── api/                # API routes (mock data)
+├── app/                         # Next.js App Router pages
+│   ├── page.tsx                 # Landing page with video hero
+│   ├── collection/              # Product catalog with filters
+│   ├── product/[id]/            # Product detail with 3D scene
+│   ├── showroom/                # 3D CSS perspective gallery
+│   ├── checkout/                # Multi-step checkout
+│   ├── orders/                  # Order history
+│   ├── wishlist/                # Saved items
+│   ├── contact/                 # Contact page
+│   └── api/                     # API routes
+│       └── ai/
+│           ├── fragrance-assistant/  # AI chatbot endpoint
+│           └── smart-search/         # Semantic search endpoint
 ├── components/
-│   ├── 3d/                 # React Three Fiber scenes
-│   │   ├── ProductScene    # Product detail 3D viewer
-│   │   ├── Scene           # Hero 3D scene
-│   │   └── PerfumeBottle   # 3D bottle model
-│   └── ui/                 # Reusable UI components
-│       ├── Navbar          # Navigation with search
-│       ├── Footer          # Site footer
-│       ├── ProductCard     # Product grid card
-│       ├── CartDrawer      # Slide-out cart
-│       ├── SmartSearch     # ⌘K search overlay
-│       ├── FragranceFinder # Quiz recommendation
-│       ├── Toast           # Notification system
-│       └── ...             # 20+ more components
-├── store/                  # Zustand state management
-├── lib/                    # Mock data & utilities
-└── types/                  # TypeScript interfaces
+│   ├── 3d/                      # React Three Fiber scenes
+│   │   ├── ProductScene         # Product detail 3D viewer
+│   │   ├── Scene                # Hero 3D scene
+│   │   └── PerfumeBottle        # 3D bottle model
+│   └── ui/                      # Reusable UI components
+│       ├── AIFragranceAssistant # Chatbot with 3 tabs
+│       ├── Navbar               # Navigation with search
+│       ├── Footer               # Site footer
+│       ├── ProductCard          # Product grid card
+│       ├── CartDrawer           # Slide-out cart
+│       ├── SmartSearch          # ⌘K semantic search
+│       ├── CustomCursor         # Diamond cursor
+│       ├── Toast                # Notification system
+│       ├── ScrollToTop          # Scroll button
+│       ├── FragranceFinder      # Quiz recommendation
+│       └── ...                  # 25+ more components
+├── lib/
+│   ├── chat-engine.ts           # AI assistant engine
+│   ├── semantic-search.ts       # TF-IDF search
+│   └── mock-data.ts             # Product database
+├── store/                       # Zustand state management
+└── types/                       # TypeScript interfaces
 ```
 
 ---
 
 ## 🎯 Key Highlights
+
+### AI Shopping Assistant
+The chatbot acts as a professional luxury perfume consultant:
+- **18+ intents** — understands budget, occasion, notes, season, gender, comparison, orders, FAQs
+- **Semantic search** — TF-IDF vectorization with synonym expansion
+- **Product knowledge** — knows every fragrance's notes, ratings, stock, sizes, pricing
+- **Personalized responses** — adapts tone based on match confidence
+- **Comparison engine** — side-by-side tables for any two products
+- **No API key needed** — runs entirely server-side
 
 ### 3D Product Visualization
 Each product features an interactive 3D scene with:
@@ -134,13 +198,6 @@ Each product features an interactive 3D scene with:
 - Reflective floor using `MeshReflectorMaterial`
 - Dynamic lighting (7-point setup)
 - Post-processing bloom and vignette effects
-
-### AI Fragrance Finder
-A 4-step quiz that recommends perfumes based on:
-- **Mood** — Romantic, Fresh, Bold, or Elegant
-- **Season** — Summer, Winter, Spring, Monsoon
-- **Occasion** — Daily, Date Night, Events, Casual
-- **Intensity** — Subtle, Moderate, or Bold
 
 ### Smart Checkout
 - Email & phone validation
@@ -156,9 +213,10 @@ A 4-step quiz that recommends perfumes based on:
 - **Static generation** for all marketing pages
 - **Dynamic rendering** for product pages and API routes
 - **Code splitting** — 3D scenes load on demand
-- **Image optimization** — Next.js Image with lazy loading
+- **Image optimization** — Next.js Image with priority loading
 - **Video optimization** — `preload="metadata"` for background videos
 - **Bundle optimization** — Tree-shaking for Framer Motion, Lucide icons
+- **localStorage** — cart, wishlist, recently viewed persist across sessions
 
 ---
 
