@@ -68,8 +68,9 @@ export default function CustomCursor() {
   return (
     <>
       <style>{`
-        *, *::before, *::after { cursor: none !important; }
-        @media (pointer: coarse) { *, *::before, *::after { cursor: auto !important; } }
+        @media (pointer: fine) {
+          a, button, input, textarea, select, [role='button'] { cursor: none !important; }
+        }
       `}</style>
       <div className="pointer-events-none fixed inset-0 z-[9999]">
         {/* Crosshair lines */}
