@@ -87,6 +87,25 @@ export default function AdminPage() {
   const [activeSection, setActiveSection] = useState('dashboard');
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      window.location.href = '/auth';
+      return;
+    }
+    fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => res.json())
+      .then(data => {
+        if (data.user?.role === 'ADMIN') {
+          setIsAuthorized(true);
+        } else {
+          window.location.href = '/dashboard';
+        }
+      })
+      .catch(() => { window.location.href = '/auth'; });
+  }, []);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -594,6 +613,17 @@ export default function AdminPage() {
     coupons: renderCoupons,
     analytics: renderAnalytics,
   };
+
+  if (!isAuthorized) {
+    return (
+      <div className="min-h-screen bg-luxury-bg flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-amber-500/70 font-body text-sm tracking-wider">Verifying admin access...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-luxury-bg pt-20">

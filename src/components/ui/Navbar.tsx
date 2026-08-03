@@ -9,7 +9,8 @@ import {
   User,
   Menu,
   X,
-  Package,
+  LogOut,
+  LayoutDashboard,
 } from "lucide-react";
 import { useStore } from "@/store/useStore";
 
@@ -28,6 +29,8 @@ export default function Navbar() {
   const isAuthOpen = useStore((s) => s.ui.isAuthOpen);
   const setAuthOpen = useStore((s) => s.ui.setAuthOpen);
   const cartItems = useStore((s) => s.cart.items);
+  const user = useStore((s) => s.user.user);
+  const logout = useStore((s) => s.user.logout);
   const [wishlistCount] = useState(0);
 
   useEffect(() => {
@@ -45,6 +48,7 @@ export default function Navbar() {
   }, [mobileOpen]);
 
   const cartCount = cartItems?.length ?? 0;
+  const dashboardHref = user?.role === "ADMIN" ? "/admin" : "/dashboard";
 
   return (
     <>
@@ -97,12 +101,6 @@ export default function Navbar() {
                   </span>
                 )}
               </Link>
-              <Link
-                href="/orders"
-                className="text-white/70 hover:text-amber-400 transition-colors duration-300"
-              >
-                <Package size={20} />
-              </Link>
               <button
                 onClick={() => setCartOpen(!isCartOpen)}
                 className="relative text-white/70 hover:text-amber-400 transition-colors duration-300"
@@ -114,12 +112,31 @@ export default function Navbar() {
                   </span>
                 )}
               </button>
-              <button
-                onClick={() => setAuthOpen(!isAuthOpen)}
-                className="text-white/70 hover:text-amber-400 transition-colors duration-300"
-              >
-                <User size={20} />
-              </button>
+              {user ? (
+                <div className="flex items-center gap-3">
+                  <Link
+                    href={dashboardHref}
+                    className="flex items-center gap-1.5 text-white/70 hover:text-amber-400 transition-colors duration-300 text-sm"
+                  >
+                    <LayoutDashboard size={18} />
+                    <span className="hidden lg:inline">{user.role === "ADMIN" ? "Admin" : "Dashboard"}</span>
+                  </Link>
+                  <button
+                    onClick={() => { logout(); window.location.href = '/'; }}
+                    className="text-white/70 hover:text-amber-400 transition-colors duration-300"
+                    title="Logout"
+                  >
+                    <LogOut size={18} />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setAuthOpen(!isAuthOpen)}
+                  className="text-white/70 hover:text-amber-400 transition-colors duration-300"
+                >
+                  <User size={20} />
+                </button>
+              )}
             </div>
 
             {/* Mobile Hamburger */}
@@ -172,6 +189,21 @@ export default function Navbar() {
                   </Link>
                 </motion.div>
               ))}
+              {user && (
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5, duration: 0.5 }}
+                >
+                  <Link
+                    href={dashboardHref}
+                    onClick={() => setMobileOpen(false)}
+                    className="text-3xl font-serif tracking-widest text-amber-400 hover:text-amber-300 transition-colors duration-300"
+                  >
+                    {user.role === "ADMIN" ? "Admin Panel" : "My Dashboard"}
+                  </Link>
+                </motion.div>
+              )}
             </div>
 
             <motion.div
@@ -180,27 +212,30 @@ export default function Navbar() {
               transition={{ delay: 0.5 }}
               className="flex items-center justify-center gap-8 pb-12"
             >
-              <button className="text-white/60 hover:text-amber-400 transition-colors">
+              <Link href="/wishlist" onClick={() => setMobileOpen(false)} className="text-white/60 hover:text-amber-400 transition-colors">
                 <Heart size={22} />
-              </button>
+              </Link>
               <button
-                onClick={() => {
-                  setMobileOpen(false);
-                  setCartOpen(true);
-                }}
+                onClick={() => { setMobileOpen(false); setCartOpen(true); }}
                 className="text-white/60 hover:text-amber-400 transition-colors"
               >
                 <ShoppingBag size={22} />
               </button>
-              <button
-                onClick={() => {
-                  setMobileOpen(false);
-                  setAuthOpen(true);
-                }}
-                className="text-white/60 hover:text-amber-400 transition-colors"
-              >
-                <User size={22} />
-              </button>
+              {user ? (
+                <button
+                  onClick={() => { logout(); setMobileOpen(false); window.location.href = '/'; }}
+                  className="text-white/60 hover:text-amber-400 transition-colors"
+                >
+                  <LogOut size={22} />
+                </button>
+              ) : (
+                <button
+                  onClick={() => { setMobileOpen(false); setAuthOpen(true); }}
+                  className="text-white/60 hover:text-amber-400 transition-colors"
+                >
+                  <User size={22} />
+                </button>
+              )}
             </motion.div>
           </motion.div>
         )}
