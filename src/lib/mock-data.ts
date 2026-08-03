@@ -221,12 +221,12 @@ export interface MockUser {
 export const mockUsers: MockUser[] = [
   {
     id: "admin-1", name: "Admin User", email: "admin@luxeperfume.com",
-    password: "$2a$12$XSOtvXVMfgH23ThVEwlSFuplUb4TB7JLu3Ww6kdgTg24J.gNrOtkC",
+    password: "$2a$12$JYJxRCzgMAApRw522DhZj.RUF/3GiCAj0k2.wLOGGIVPNKFP0Dx2S",
     role: "ADMIN", phone: null, avatar: null, createdAt: "2026-01-01T00:00:00Z",
   },
   {
     id: "customer-1", name: "Test Customer", email: "customer@test.com",
-    password: "$2a$12$XSOtvXVMfgH23ThVEwlSFuplUb4TB7JLu3Ww6kdgTg24J.gNrOtkC",
+    password: "$2a$12$JYJxRCzgMAApRw522DhZj.RUF/3GiCAj0k2.wLOGGIVPNKFP0Dx2S",
     role: "CUSTOMER", phone: null, avatar: null, createdAt: "2026-02-01T00:00:00Z",
   },
 ];
