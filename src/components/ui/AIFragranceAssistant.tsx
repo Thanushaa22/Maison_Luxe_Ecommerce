@@ -10,7 +10,7 @@ import Image from "next/image";
 interface Message {
   role: "user" | "assistant";
   content: string;
-  products?: Array<{ id: string; name: string; brand: string; price: number; image?: string }>;
+  products?: Array<{ id: string; name: string; brand: string; price: number; image?: string; matchScore?: number; topNotes?: string; reason?: string }>;
 }
 
 /* ─── Quiz Data ─── */
@@ -296,16 +296,32 @@ export default function AIFragranceAssistant() {
                             {msg.products && msg.products.length > 0 && (
                               <div className="mt-2.5 space-y-1.5">
                                 {msg.products.map((p) => (
-                                  <Link key={p.id} href={`/product/${p.id}`} onClick={() => setIsOpen(false)} className="flex items-center gap-2.5 bg-white/5 rounded-lg p-2 border border-white/5 hover:border-amber-500/20 transition-colors">
-                                    {p.image && (
-                                      <div className="w-8 h-10 relative rounded overflow-hidden flex-shrink-0">
-                                        <Image src={p.image} alt={p.name} fill className="object-cover" />
+                                  <Link key={p.id} href={`/product/${p.id}`} onClick={() => setIsOpen(false)} className="block bg-white/5 rounded-lg p-2.5 border border-white/5 hover:border-amber-500/20 transition-colors">
+                                    <div className="flex items-center gap-2.5">
+                                      {p.image && (
+                                        <div className="w-9 h-11 relative rounded overflow-hidden flex-shrink-0">
+                                          <Image src={p.image} alt={p.name} fill className="object-cover" />
+                                        </div>
+                                      )}
+                                      <div className="min-w-0 flex-1">
+                                        <div className="flex items-center gap-2">
+                                          <p className="text-white text-xs truncate font-medium">{p.name}</p>
+                                          {p.matchScore && (
+                                            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 flex-shrink-0">
+                                              {p.matchScore}%
+                                            </span>
+                                          )}
+                                        </div>
+                                        <p className="text-white/30 text-[10px]">{p.brand}</p>
+                                        {p.topNotes && (
+                                          <p className="text-white/25 text-[10px] mt-0.5 truncate">{p.topNotes}</p>
+                                        )}
                                       </div>
-                                    )}
-                                    <div className="min-w-0">
-                                      <p className="text-white text-xs truncate">{p.name}</p>
-                                      <p className="text-amber-400 text-xs font-serif">₹{p.price.toLocaleString("en-IN")}</p>
+                                      <p className="text-amber-400 text-xs font-serif flex-shrink-0">₹{p.price.toLocaleString("en-IN")}</p>
                                     </div>
+                                    {p.reason && (
+                                      <p className="text-white/20 text-[10px] mt-1.5 pl-[46px]">{p.reason}</p>
+                                    )}
                                   </Link>
                                 ))}
                               </div>
