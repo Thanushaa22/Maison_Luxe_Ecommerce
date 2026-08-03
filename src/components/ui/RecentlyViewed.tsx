@@ -64,7 +64,7 @@ export default function RecentlyViewed() {
                   <div className="p-3">
                     <p className="text-white/40 text-[10px] font-body tracking-wider uppercase">{item.brand}</p>
                     <p className="text-white text-sm font-display truncate">{item.name}</p>
-                    <p className="text-gold-500 text-sm font-body">₹{item.price.toLocaleString("en-IN")}</p>
+                    <p className="text-gold-500 text-sm font-body">₹{(item.price || 0).toLocaleString("en-IN")}</p>
                   </div>
                 </div>
               </Link>
