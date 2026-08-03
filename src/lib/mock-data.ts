@@ -233,6 +233,12 @@ export const mockUsers: MockUser[] = [
 
 const inMemoryUsers: MockUser[] = [...mockUsers];
 
+export const mockCoupons = [
+  { id: "coupon-1", code: "WELCOME10", description: "10% off your first order", discountType: "percent", discountValue: 10, isActive: true, minOrderAmount: 1000, maxUses: 100, usedCount: 12, validUntil: "2026-12-31T23:59:59Z", createdAt: "2026-01-01T00:00:00Z" },
+  { id: "coupon-2", code: "LUXE20", description: "20% off on orders above ₹5000", discountType: "percent", discountValue: 20, isActive: true, minOrderAmount: 5000, maxUses: 50, usedCount: 8, validUntil: "2026-12-31T23:59:59Z", createdAt: "2026-01-15T00:00:00Z" },
+  { id: "coupon-3", code: "FLAT500", description: "₹500 off on orders above ₹3000", discountType: "flat", discountValue: 500, isActive: true, minOrderAmount: 3000, maxUses: 200, usedCount: 34, validUntil: "2026-12-31T23:59:59Z", createdAt: "2026-02-01T00:00:00Z" },
+];
+
 export function findMockUserByEmail(email: string): MockUser | undefined {
   return inMemoryUsers.find(u => u.email === email);
 }

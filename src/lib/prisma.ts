@@ -1,27 +1,11 @@
-let PrismaClient: any = null;
-try {
-  PrismaClient = require('@prisma/client').PrismaClient;
-} catch {
-  console.log('@prisma/client not available');
-}
+import { PrismaClient } from '@prisma/client';
 
 const globalForPrisma = globalThis as unknown as {
-  prisma: any | undefined;
+  prisma: PrismaClient | undefined;
 };
 
-function createPrismaClient() {
-  if (!PrismaClient || !process.env.DATABASE_URL) {
-    return null;
-  }
-  try {
-    return new PrismaClient();
-  } catch {
-    return null;
-  }
-}
+export const prisma = globalForPrisma.prisma ?? new PrismaClient();
 
-export const prisma = globalForPrisma.prisma ?? createPrismaClient();
-
-if (process.env.NODE_ENV !== 'production' && prisma) globalForPrisma.prisma = prisma;
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 
 export default prisma;
