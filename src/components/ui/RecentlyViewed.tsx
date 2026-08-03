@@ -33,8 +33,8 @@ export default function RecentlyViewed() {
   const [items, setItems] = useState<ViewedProduct[]>([]);
 
   useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem("maison-luxe-recently-viewed") || "[]");
-    setItems(stored);
+    const stored: ViewedProduct[] = JSON.parse(localStorage.getItem("maison-luxe-recently-viewed") || "[]");
+    setItems(stored.filter((item) => item.price > 0 && item.name));
   }, []);
 
   if (items.length === 0) return null;
