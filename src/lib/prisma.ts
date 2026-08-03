@@ -1,11 +1,16 @@
-import { PrismaClient } from '@prisma/client';
+let PrismaClient: any = null;
+try {
+  PrismaClient = require('@prisma/client').PrismaClient;
+} catch {
+  console.log('@prisma/client not available');
+}
 
 const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
+  prisma: any | undefined;
 };
 
 function createPrismaClient() {
-  if (!process.env.DATABASE_URL) {
+  if (!PrismaClient || !process.env.DATABASE_URL) {
     return null;
   }
   try {
