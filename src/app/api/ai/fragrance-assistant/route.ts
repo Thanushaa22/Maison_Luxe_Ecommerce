@@ -1,21 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { mockProducts } from '@/lib/mock-data';
+import { semanticSearch } from '@/lib/semantic-search';
 
 export async function POST(request: NextRequest) {
   const { message } = await request.json();
-  const q = (message || '').toLowerCase();
-  const keywordMap: Record<string, string[]> = {
-    wedding: ["floral"], evening: ["oriental"], romantic: ["floral"], summer: ["citrus"],
-    fresh: ["aquatic"], sweet: ["oriental"], woody: ["woody"], office: ["citrus"],
-    night: ["oriental"], date: ["floral"], beach: ["aquatic"], warm: ["oriental"],
-    light: ["citrus"], luxury: ["oriental"], classic: ["woody"],
-  };
-  let matched = '';
-  for (const [key, cats] of Object.entries(keywordMap)) { if (q.includes(key)) { matched = cats[0]; break; } }
-  let results = matched ? mockProducts.filter(p => p.category === matched) : mockProducts;
-  if (results.length === 0) results = mockProducts.slice(0, 3);
+  const query = (message || '').trim();
+
+  if (!query) {
+    return NextResponse.json({
+      message: 'Tell me about the mood, occasion, or notes you are looking for, and I will find the perfect fragrance for you.',
+      products: [],
+    });
+  }
+
+  const results = semanticSearch(query, 3);
+
+  if (results.length === 0) {
+    return NextResponse.json({
+      message: 'I could not find an exact match, but here are some of our finest fragrances you might love.',
+      products: [],
+    });
+  }
+
+  const topScore = results[0].score;
+  let response = '';
+  if (topScore > 0.5) {
+    response = `Excellent taste! Based on "${query}", I have curated these exceptional fragrances that perfectly match your preferences.`;
+  } else if (topScore > 0.25) {
+    response = `Based on your description, I have found these fragrances that capture the essence of what you are looking for.`;
+  } else {
+    response = `Here are some of our finest fragrances that might resonate with your taste.`;
+  }
+
   return NextResponse.json({
-    message: `Based on your description, I've curated these exceptional fragrances for you. Each one captures the essence of what you're looking for.`,
-    products: results.slice(0, 3).map(p => ({ id: p.id, name: p.name, brand: p.brand, price: p.price, image: p.images[0] })),
+    message: response,
+    products: results.map(r => ({
+      id: r.product.id,
+      name: r.product.name,
+      brand: r.product.brand,
+      price: r.product.price,
+      image: r.product.images[0],
+      matchScore: Math.round(r.score * 100),
+    })),
   });
 }
