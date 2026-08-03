@@ -104,36 +104,33 @@ export default function CheckoutPage() {
     if (!validateStep(2)) return;
     setIsSubmitting(true);
     try {
+      const token = localStorage.getItem('auth_token');
       const res = await fetch('/api/checkout', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
         body: JSON.stringify({
-          items: items.map(item => ({
-            productId: item.productId,
-            quantity: item.quantity,
-            size: item.size,
-          })),
           shippingAddress: {
             name: formData.name,
-            address: formData.address1,
-            address2: formData.address2,
+            phone: formData.phone,
+            line1: formData.address1,
+            line2: formData.address2,
             city: formData.city,
             state: formData.state,
             pincode: formData.pincode,
             country: formData.country,
           },
-          email: formData.email,
-          phone: formData.phone,
+          paymentMethod: formData.paymentMethod,
         }),
       });
       const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        router.push('/checkout?success=true');
-      }
-    } catch {
-      setErrors({ submit: 'Something went wrong. Please try again.' });
+      if (!res.ok) throw new Error(data.error || 'Checkout failed');
+      useCartStore.getState().clearCart();
+      router.push('/orders');
+    } catch (err: unknown) {
+      setErrors({ submit: err instanceof Error ? err.message : 'Something went wrong' });
     } finally {
       setIsSubmitting(false);
     }

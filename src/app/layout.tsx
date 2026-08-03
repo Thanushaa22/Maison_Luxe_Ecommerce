@@ -7,6 +7,7 @@ import Footer from '@/components/ui/Footer';
 import CartDrawer from '@/components/ui/CartDrawer';
 import AuthModal from '@/components/ui/AuthModal';
 import AIFragranceAssistant from '@/components/ui/AIFragranceAssistant';
+import AuthProvider from '@/components/ui/AuthProvider';
 import { ToastProvider } from '@/components/ui/Toast';
 import ScrollToTop from '@/components/ui/ScrollToTop';
 
@@ -54,14 +55,16 @@ export default function RootLayout({
     <html lang="en" className={`${playfair.variable} ${inter.variable}`}>
       <body className="min-h-screen bg-luxury-bg text-white font-body antialiased">
         <ToastProvider>
-          <CustomCursor />
-          <Navbar />
-          <CartDrawer />
-          <AuthModal />
-          <AIFragranceAssistant />
-          <main>{children}</main>
-          <Footer />
-          <ScrollToTop />
+          <AuthProvider>
+            <CustomCursor />
+            <Navbar />
+            <CartDrawer />
+            <AuthModal />
+            <AIFragranceAssistant />
+            <main>{children}</main>
+            <Footer />
+            <ScrollToTop />
+          </AuthProvider>
         </ToastProvider>
       </body>
     </html>

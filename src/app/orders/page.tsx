@@ -28,17 +28,15 @@ export default function OrdersPage() {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const res = await fetch('/api/orders');
+        const token = localStorage.getItem('auth_token');
+        const res = await fetch('/api/orders', {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        if (!res.ok) throw new Error('Failed to fetch');
         const data = await res.json();
         setOrders(data.orders || []);
       } catch {
-        setOrders([
-          { id: 'ORD-001', total: 28000, status: 'DELIVERED', createdAt: '2026-07-28T00:00:00Z', items: [{ name: 'Noir Cristal', quantity: 1, size: '100ml', price: 14500 }, { name: 'Velvet Dusk', quantity: 1, size: '50ml', price: 12800 }] },
-          { id: 'ORD-002', total: 16200, status: 'SHIPPED', createdAt: '2026-07-29T00:00:00Z', items: [{ name: 'Nocturne Jardin', quantity: 1, size: '100ml', price: 16200 }] },
-          { id: 'ORD-003', total: 13500, status: 'PROCESSING', createdAt: '2026-07-30T00:00:00Z', items: [{ name: 'Lumiere Solaire', quantity: 1, size: '50ml', price: 13500 }] },
-          { id: 'ORD-004', total: 44500, status: 'DELIVERED', createdAt: '2026-07-31T00:00:00Z', items: [{ name: 'Midnight Oud', quantity: 2, size: '50ml', price: 22500 }] },
-          { id: 'ORD-005', total: 8500, status: 'PENDING', createdAt: '2026-08-01T00:00:00Z', items: [{ name: 'Soleil d\'Argent', quantity: 1, size: '100ml', price: 8500 }] },
-        ]);
+        setOrders([]);
       } finally {
         setIsLoading(false);
       }

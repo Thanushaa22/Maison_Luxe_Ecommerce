@@ -1,7 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
+import { hashPassword, generateToken } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
-  const { name, email, password } = await request.json();
-  if (!name || !email || !password) return NextResponse.json({ message: 'All fields required' }, { status: 400 });
-  return NextResponse.json({ user: { id: Date.now().toString(), email, name, role: "CUSTOMER", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }, token: 'mock-new-token' });
+  try {
+    const { name, email, password, phone } = await request.json();
+    if (!name || !email || !password) {
+      return NextResponse.json({ error: 'Name, email, and password are required' }, { status: 400 });
+    }
+    const existing = await prisma.user.findUnique({ where: { email } });
+    if (existing) {
+      return NextResponse.json({ error: 'Email already registered' }, { status: 409 });
+    }
+    const hashedPassword = await hashPassword(password);
+    const user = await prisma.user.create({
+      data: { name, email, password: hashedPassword, phone: phone || null },
+      select: { id: true, email: true, name: true, role: true, phone: true, avatar: true, createdAt: true },
+    });
+    const token = generateToken(user);
+    return NextResponse.json({ user, token }, { status: 201 });
+  } catch (error) {
+    console.error('Register error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 }

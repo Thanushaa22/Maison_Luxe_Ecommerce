@@ -1,12 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { mockUser } from '@/lib/mock-data';
+import prisma from '@/lib/prisma';
+import { verifyPassword, generateToken } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
-  const { email, password } = await request.json();
-  if (!email || !password) return NextResponse.json({ message: 'Email and password required' }, { status: 400 });
-  if (email === 'admin@luxeperfume.com' && password === 'admin123') {
-    return NextResponse.json({ user: mockUser, token: 'mock-admin-token' });
+  try {
+    const { email, password } = await request.json();
+    if (!email || !password) {
+      return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
+    }
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
+    }
+    const isValid = await verifyPassword(password, user.password);
+    if (!isValid) {
+      return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
+    }
+    const token = generateToken({ id: user.id, email: user.email, role: user.role });
+    const { password: _, ...userWithoutPassword } = user;
+    return NextResponse.json({ user: userWithoutPassword, token });
+  } catch (error) {
+    console.error('Login error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-  const user = { id: "2", email, name: email.split('@')[0], role: "CUSTOMER" as const, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
-  return NextResponse.json({ user, token: 'mock-customer-token' });
 }

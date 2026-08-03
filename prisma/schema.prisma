@@ -3,21 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
-}
-
-enum Role {
-  ADMIN
-  CUSTOMER
-}
-
-enum OrderStatus {
-  PENDING
-  PROCESSING
-  SHIPPED
-  DELIVERED
-  CANCELLED
 }
 
 model User {
@@ -25,9 +12,11 @@ model User {
   email     String   @unique
   name      String
   password  String
-  role      Role     @default(CUSTOMER)
+  role      String   @default("CUSTOMER")
   avatar    String?
   phone     String?
+  resetToken String?
+  resetTokenExpiry DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -35,8 +24,7 @@ model User {
   cart      Cart?
   reviews   Review[]
   wishlist  Wishlist[]
-
-  @@map("users")
+  addresses Address[]
 }
 
 model Product {
@@ -45,11 +33,13 @@ model Product {
   slug         String   @unique
   description  String
   brand        String
+  sku          String?
   price        Float
   comparePrice Float?
-  images       String[]
-  sizes        String[]
-  notes        Json?
+  images       String
+  video        String?
+  sizes        String
+  notes        String?
   category     String
   rating       Float    @default(0)
   reviewCount  Int      @default(0)
@@ -63,24 +53,32 @@ model Product {
   cartItems    CartItem[]
   reviews      Review[]
   wishlist     Wishlist[]
-
-  @@map("products")
 }
 
 model Order {
-  id              String      @id @default(cuid())
+  id              String   @id @default(cuid())
   userId          String
   total           Float
-  status          OrderStatus @default(PENDING)
-  shippingAddress Json?
-  paymentIntentId String?
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  subtotal        Float    @default(0)
+  shipping        Float    @default(0)
+  tax             Float    @default(0)
+  discount        Float    @default(0)
+  couponCode      String?
+  status          String   @default("PENDING")
+  paymentMethod   String   @default("card")
+  paymentStatus   String   @default("pending")
+  shippingAddress String?
+  billingAddress  String?
+  trackingNumber  String?
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   items           OrderItem[]
 
-  @@map("orders")
+  @@index([userId])
+  @@index([status])
 }
 
 model OrderItem {
@@ -93,8 +91,6 @@ model OrderItem {
 
   order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  @@map("order_items")
 }
 
 model Cart {
@@ -105,8 +101,6 @@ model Cart {
 
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   items     CartItem[]
-
-  @@map("carts")
 }
 
 model CartItem {
@@ -118,8 +112,6 @@ model CartItem {
 
   cart      Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  @@map("cart_items")
 }
 
 model Review {
@@ -128,25 +120,27 @@ model Review {
   productId String
   rating    Int
   comment   String?
+  helpful   Int      @default(0)
   createdAt DateTime @default(now())
 
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([userId, productId])
-  @@map("reviews")
 }
 
 model Coupon {
   id              String   @id @default(cuid())
   code            String   @unique
-  discountPercent Int
+  description     String?
+  discountType    String   @default("percent")
+  discountValue   Float
+  minOrderAmount  Float?
+  validFrom       DateTime @default(now())
   validUntil      DateTime
   isActive        Boolean  @default(true)
   maxUses         Int?
   usedCount       Int      @default(0)
-
-  @@map("coupons")
 }
 
 model Wishlist {
@@ -159,5 +153,22 @@ model Wishlist {
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([userId, productId])
-  @@map("wishlists")
+}
+
+model Address {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  phone     String
+  line1     String
+  line2     String?
+  city      String
+  state     String
+  pincode   String
+  country   String   @default("India")
+  isDefault Boolean  @default(false)
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

@@ -49,16 +49,18 @@ const Cell = dynamic(
 interface DashboardStats {
   totalRevenue: number;
   totalOrders: number;
-  totalUsers: number;
+  totalCustomers: number;
   totalProducts: number;
   recentOrders: {
     id: string;
-    customer: string;
     total: number;
     status: string;
-    date: string;
+    createdAt: string;
+    user?: { name: string; email: string };
+    items?: { quantity: number; price: number }[];
   }[];
   monthlyRevenue: { month: string; revenue: number }[];
+  bestSelling?: { id: string; name: string; totalSold: number }[];
   lowStockProducts: { id: string; name: string; stock: number }[];
 }
 
@@ -90,38 +92,15 @@ export default function AdminPage() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await fetch('/api/admin/stats');
-        const data = await res.json();
-        setStats(data);
-      } catch {
-        setStats({
-          totalRevenue: 2485000,
-          totalOrders: 342,
-          totalUsers: 1250,
-          totalProducts: 48,
-          recentOrders: [
-            { id: 'ORD-001', customer: 'Aarav Sharma', total: 12500, status: 'DELIVERED', date: '2026-08-01' },
-            { id: 'ORD-002', customer: 'Priya Patel', total: 8900, status: 'SHIPPED', date: '2026-08-01' },
-            { id: 'ORD-003', customer: 'Rahul Mehta', total: 15200, status: 'PROCESSING', date: '2026-07-31' },
-            { id: 'ORD-004', customer: 'Sneha Gupta', total: 6700, status: 'PENDING', date: '2026-07-31' },
-            { id: 'ORD-005', customer: 'Vikram Singh', total: 21000, status: 'DELIVERED', date: '2026-07-30' },
-          ],
-          monthlyRevenue: [
-            { month: 'Jan', revenue: 185000 },
-            { month: 'Feb', revenue: 220000 },
-            { month: 'Mar', revenue: 195000 },
-            { month: 'Apr', revenue: 280000 },
-            { month: 'May', revenue: 320000 },
-            { month: 'Jun', revenue: 290000 },
-            { month: 'Jul', revenue: 350000 },
-            { month: 'Aug', revenue: 245000 },
-          ],
-          lowStockProducts: [
-            { id: '1', name: 'Noir Absolute', stock: 3 },
-            { id: '2', name: 'Velvet Oud', stock: 5 },
-            { id: '3', name: 'Rose Elixir', stock: 2 },
-          ],
+        const token = localStorage.getItem('auth_token');
+        const res = await fetch('/api/admin/stats', {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
+        if (!res.ok) throw new Error('Unauthorized');
+        const data = await res.json();
+        setStats(data.stats);
+      } catch {
+        setStats(null);
       } finally {
         setIsLoading(false);
       }
@@ -133,7 +112,7 @@ export default function AdminPage() {
     ? [
         { label: 'Total Revenue', value: `₹${(stats.totalRevenue / 100000).toFixed(1)}L`, change: '+12.5%', up: true, icon: DollarSign },
         { label: 'Total Orders', value: stats.totalOrders.toLocaleString(), change: '+8.2%', up: true, icon: ShoppingCart },
-        { label: 'Total Customers', value: stats.totalUsers.toLocaleString(), change: '+15.3%', up: true, icon: Users },
+        { label: 'Total Customers', value: stats.totalCustomers.toLocaleString(), change: '+15.3%', up: true, icon: Users },
         { label: 'Total Products', value: stats.totalProducts.toString(), change: '+3', up: true, icon: PackageIcon },
       ]
     : [];
@@ -230,14 +209,14 @@ export default function AdminPage() {
                 {stats?.recentOrders.map((order) => (
                   <tr key={order.id} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
                     <td className="py-3 text-sm font-body text-amber-500">{order.id}</td>
-                    <td className="py-3 text-sm font-body text-white/70">{order.customer}</td>
+                    <td className="py-3 text-sm font-body text-white/70">{order.user?.name || 'Unknown'}</td>
                     <td className="py-3 text-sm font-body text-white/70">₹{order.total.toLocaleString('en-IN')}</td>
                     <td className="py-3">
                       <span className={`text-xs font-body px-2.5 py-1 rounded-full ${statusColors[order.status] || 'bg-white/10 text-white/50'}`}>
                         {order.status}
                       </span>
                     </td>
-                    <td className="py-3 text-sm font-body text-white/50">{order.date}</td>
+                    <td className="py-3 text-sm font-body text-white/50">{new Date(order.createdAt).toLocaleDateString()}</td>
                   </tr>
                 ))}
               </tbody>
@@ -374,14 +353,14 @@ export default function AdminPage() {
               {stats?.recentOrders.map((order) => (
                 <tr key={order.id} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
                   <td className="p-4 text-sm font-body text-amber-500">{order.id}</td>
-                  <td className="p-4 text-sm font-body text-white/70">{order.customer}</td>
+                  <td className="p-4 text-sm font-body text-white/70">{order.user?.name || 'Unknown'}</td>
                   <td className="p-4 text-sm font-body text-white/70">₹{order.total.toLocaleString('en-IN')}</td>
                   <td className="p-4">
                     <span className={`text-xs font-body px-2.5 py-1 rounded-full ${statusColors[order.status] || 'bg-white/10 text-white/50'}`}>
                       {order.status}
                     </span>
                   </td>
-                  <td className="p-4 text-sm font-body text-white/50">{order.date}</td>
+                  <td className="p-4 text-sm font-body text-white/50">{new Date(order.createdAt).toLocaleDateString()}</td>
                   <td className="p-4">
                     <div className="flex items-center justify-end gap-2">
                       <button className="p-2 text-white/30 hover:text-amber-500 transition-colors rounded-lg hover:bg-white/5">
