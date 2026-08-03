@@ -87,12 +87,13 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       try {
         const res = await fetch(`/api/products/${resolvedParams.id}`);
         const data = await res.json();
-        setProduct(data);
+        const prod = data.product || data;
+        setProduct(prod);
 
-        const relRes = await fetch(`/api/products?category=${data.category}&limit=4`);
+        const relRes = await fetch(`/api/products?category=${prod.category}&limit=4`);
         const relData = await relRes.json();
-        setRelatedProducts(relData.products?.filter((p: Product) => p.id !== data.id).slice(0, 4) || []);
-        trackRecentlyViewed(data);
+        setRelatedProducts(relData.products?.filter((p: Product) => p.id !== prod.id).slice(0, 4) || []);
+        trackRecentlyViewed(prod);
       } catch {
         setProduct(null);
       } finally {
