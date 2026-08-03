@@ -179,9 +179,10 @@ function CollectionContent() {
       <FilterSection title="Category" sectionKey="category">
         <div className="space-y-2.5">
           {categories.map((cat) => (
-            <label
+            <button
               key={cat}
-              className="flex items-center gap-3 cursor-pointer group"
+              onClick={() => toggleCategory(cat)}
+              className="flex items-center gap-3 cursor-pointer group w-full text-left"
             >
               <div
                 className={`w-4 h-4 rounded border transition-all duration-200 flex items-center justify-center ${
@@ -199,7 +200,7 @@ function CollectionContent() {
               <span className="text-sm text-white/60 group-hover:text-white/80 transition-colors font-body">
                 {cat}
               </span>
-            </label>
+            </button>
           ))}
         </div>
       </FilterSection>
@@ -207,9 +208,10 @@ function CollectionContent() {
       <FilterSection title="Price Range" sectionKey="price">
         <div className="space-y-2.5">
           {priceRanges.map((range, index) => (
-            <label
+            <button
               key={range.label}
-              className="flex items-center gap-3 cursor-pointer group"
+              onClick={() => togglePriceRange(index)}
+              className="flex items-center gap-3 cursor-pointer group w-full text-left"
             >
               <div
                 className={`w-4 h-4 rounded border transition-all duration-200 flex items-center justify-center ${
@@ -227,7 +229,7 @@ function CollectionContent() {
               <span className="text-sm text-white/60 group-hover:text-white/80 transition-colors font-body">
                 {range.label}
               </span>
-            </label>
+            </button>
           ))}
         </div>
       </FilterSection>
@@ -235,9 +237,10 @@ function CollectionContent() {
       <FilterSection title="Sort By" sectionKey="sort">
         <div className="space-y-2.5">
           {sortOptions.map((opt) => (
-            <label
+            <button
               key={opt.value}
-              className="flex items-center gap-3 cursor-pointer group"
+              onClick={() => setSortBy(opt.value)}
+              className="flex items-center gap-3 cursor-pointer group w-full text-left"
             >
               <div
                 className={`w-3 h-3 rounded-full border-2 transition-all duration-200 ${
@@ -249,7 +252,7 @@ function CollectionContent() {
               <span className="text-sm text-white/60 group-hover:text-white/80 transition-colors font-body">
                 {opt.label}
               </span>
-            </label>
+            </button>
           ))}
         </div>
       </FilterSection>

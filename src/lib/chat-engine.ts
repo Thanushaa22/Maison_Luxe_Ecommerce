@@ -288,7 +288,7 @@ function formatProducts(products: MockProduct[], scores?: number[]): ChatRespons
 
 const greetingSuggestions = [
   'Recommend a perfume for a wedding',
-  'I need something under ₹10,000',
+  'I need something under ₹15,000',
   'Fresh fragrance for summer',
   'Gift for my girlfriend',
   'Compare Noir Cristal vs Lumiere Solaire',
