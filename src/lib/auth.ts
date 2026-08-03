@@ -1,6 +1,8 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import prisma from './prisma';
+import { isDbAvailable } from './db-check';
+import { findMockUserByEmail } from './mock-data';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'maison-luxe-super-secret-key-2026';
 
@@ -40,8 +42,17 @@ export async function getUserFromRequest(request: Request) {
   if (!token) return null;
   const payload = verifyToken(token);
   if (!payload) return null;
-  const user = await prisma.user.findUnique({ where: { id: payload.id }, select: { id: true, email: true, name: true, role: true, phone: true, avatar: true, createdAt: true } });
-  return user;
+
+  const dbUp = await isDbAvailable();
+  if (dbUp) {
+    const user = await prisma.user.findUnique({ where: { id: payload.id }, select: { id: true, email: true, name: true, role: true, phone: true, avatar: true, createdAt: true } });
+    return user;
+  }
+
+  const mockUser = findMockUserByEmail(payload.email);
+  if (!mockUser) return null;
+  const { password: _, ...userWithoutPassword } = mockUser;
+  return userWithoutPassword;
 }
 
 export async function requireAuth(request: Request) {

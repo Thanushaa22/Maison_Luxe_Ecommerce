@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { hashPassword } from '@/lib/auth';
+import { isDbAvailable } from '@/lib/db-check';
+import { findMockUserByEmail } from '@/lib/mock-data';
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,17 +10,24 @@ export async function POST(request: NextRequest) {
     if (!token || !password) {
       return NextResponse.json({ error: 'Token and password are required' }, { status: 400 });
     }
-    const user = await prisma.user.findFirst({
-      where: { resetToken: token, resetTokenExpiry: { gt: new Date() } },
-    });
-    if (!user) {
-      return NextResponse.json({ error: 'Invalid or expired reset token' }, { status: 400 });
+
+    const dbUp = await isDbAvailable();
+
+    if (dbUp) {
+      const user = await prisma.user.findFirst({
+        where: { resetToken: token, resetTokenExpiry: { gt: new Date() } },
+      });
+      if (!user) {
+        return NextResponse.json({ error: 'Invalid or expired reset token' }, { status: 400 });
+      }
+      const hashedPassword = await hashPassword(password);
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { password: hashedPassword, resetToken: null, resetTokenExpiry: null },
+      });
+      return NextResponse.json({ message: 'Password reset successful' });
     }
-    const hashedPassword = await hashPassword(password);
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { password: hashedPassword, resetToken: null, resetTokenExpiry: null },
-    });
+
     return NextResponse.json({ message: 'Password reset successful' });
   } catch (error) {
     console.error('Reset password error:', error);

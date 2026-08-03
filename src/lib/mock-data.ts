@@ -206,3 +206,38 @@ export function getMockProducts(params: { search?: string; category?: string; fe
 
 export function getMockProductById(id: string) { return mockProducts.find(p => p.id === id) || null; }
 export function getMockReviews(productId?: string) { return productId ? mockReviews.filter(r => r.productId === productId) : mockReviews; }
+
+export interface MockUser {
+  id: string;
+  name: string;
+  email: string;
+  password: string;
+  role: string;
+  phone: string | null;
+  avatar: string | null;
+  createdAt: string;
+}
+
+export const mockUsers: MockUser[] = [
+  {
+    id: "admin-1", name: "Admin User", email: "admin@luxeperfume.com",
+    password: "$2a$12$XSOtvXVMfgH23ThVEwlSFuplUb4TB7JLu3Ww6kdgTg24J.gNrOtkC",
+    role: "ADMIN", phone: null, avatar: null, createdAt: "2026-01-01T00:00:00Z",
+  },
+  {
+    id: "customer-1", name: "Test Customer", email: "customer@test.com",
+    password: "$2a$12$XSOtvXVMfgH23ThVEwlSFuplUb4TB7JLu3Ww6kdgTg24J.gNrOtkC",
+    role: "CUSTOMER", phone: null, avatar: null, createdAt: "2026-02-01T00:00:00Z",
+  },
+];
+
+const inMemoryUsers: MockUser[] = [...mockUsers];
+
+export function findMockUserByEmail(email: string): MockUser | undefined {
+  return inMemoryUsers.find(u => u.email === email);
+}
+
+export function createMockUser(user: MockUser): MockUser {
+  inMemoryUsers.push(user);
+  return user;
+}
