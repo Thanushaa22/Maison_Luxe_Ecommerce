@@ -173,12 +173,6 @@ A 4-step quiz that recommends perfumes based on:
 
 ---
 
-## 📝 License
-
-This project is open source and available under the [MIT License](LICENSE).
-
----
-
 <div align="center">
 
 **Built with ♦ by [Thanusha M](https://linkedin.com/in/thanusha2233)**
