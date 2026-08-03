@@ -202,7 +202,7 @@ export default function FragranceFinder() {
                         {result.map((rec) => (
                           <Link
                             key={rec.id}
-                            href={`/product/${rec.id}`}
+                            href={`/product/${rec.slug || rec.id}`}
                             onClick={() => { setOpen(false); reset(); }}
                             className="block p-4 rounded-xl border border-white/10 bg-white/5 hover:border-gold-500/30 hover:bg-gold-500/5 transition-all group"
                           >

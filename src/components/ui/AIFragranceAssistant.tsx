@@ -9,6 +9,7 @@ import Image from "next/image";
 /* ─── Types ─── */
 interface Product {
   id: string;
+  slug: string;
   name: string;
   brand: string;
   price: number;
@@ -292,7 +293,7 @@ export default function AIFragranceAssistant() {
                           {msg.products && msg.products.length > 0 && (
                             <div className="ml-8 space-y-1.5">
                               {msg.products.map((p) => (
-                                <Link key={p.id} href={`/product/${p.id}`} onClick={() => setIsOpen(false)} className="block bg-white/5 rounded-xl p-2.5 border border-white/5 hover:border-amber-500/20 transition-all group">
+                                <Link key={p.id} href={`/product/${p.slug || p.id}`} onClick={() => setIsOpen(false)} className="block bg-white/5 rounded-xl p-2.5 border border-white/5 hover:border-amber-500/20 transition-all group">
                                   <div className="flex items-start gap-2.5">
                                     {p.image && (
                                       <div className="w-11 h-14 relative rounded-lg overflow-hidden flex-shrink-0 bg-white/5">
@@ -406,7 +407,7 @@ export default function AIFragranceAssistant() {
                         </div>
                         <div className="space-y-2.5">
                           {quizResult.map((rec) => (
-                            <Link key={rec.id} href={`/product/${rec.id}`} onClick={() => setIsOpen(false)} className="block p-3.5 rounded-xl border border-white/10 bg-white/5 hover:border-amber-500/30 hover:bg-amber-500/5 transition-all group">
+                            <Link key={rec.id} href={`/product/${rec.slug || rec.id}`} onClick={() => setIsOpen(false)} className="block p-3.5 rounded-xl border border-white/10 bg-white/5 hover:border-amber-500/30 hover:bg-amber-500/5 transition-all group">
                               <div className="flex items-center justify-between">
                                 <div>
                                   <p className="text-white font-display text-sm group-hover:text-amber-400 transition-colors">{rec.name}</p>

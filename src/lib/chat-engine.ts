@@ -250,6 +250,7 @@ export interface ChatResponse {
   message: string;
   products?: Array<{
     id: string;
+    slug: string;
     name: string;
     brand: string;
     price: number;
@@ -271,6 +272,7 @@ export interface ChatResponse {
 function formatProducts(products: MockProduct[], scores?: number[]): ChatResponse['products'] {
   return products.map((p, i) => ({
     id: p.id,
+    slug: p.slug,
     name: p.name,
     brand: p.brand,
     price: p.price,

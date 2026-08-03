@@ -6,19 +6,21 @@ import { motion } from "framer-motion";
 
 interface ViewedProduct {
   id: string;
+  slug: string;
   name: string;
   brand: string;
   price: number;
   image: string;
 }
 
-export function trackRecentlyViewed(product: { id: string; name: string; brand: string; price: number; images: string[] }) {
+export function trackRecentlyViewed(product: { id: string; slug?: string; name: string; brand: string; price: number; images: string[] }) {
   if (typeof window === "undefined") return;
   const key = "maison-luxe-recently-viewed";
   const existing: ViewedProduct[] = JSON.parse(localStorage.getItem(key) || "[]");
   const filtered = existing.filter((p) => p.id !== product.id);
   filtered.unshift({
     id: product.id,
+    slug: product.slug || product.id,
     name: product.name,
     brand: product.brand,
     price: product.price,
@@ -52,7 +54,7 @@ export default function RecentlyViewed() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: i * 0.05 }}
             >
-              <Link href={`/product/${item.id}`}>
+              <Link href={`/product/${item.slug || item.id}`}>
                 <div className="flex-shrink-0 w-48 glass rounded-xl overflow-hidden group hover:border-gold-500/30 border border-white/10 transition-all">
                   <div className="aspect-square bg-white/5 relative overflow-hidden">
                     {item.image && (

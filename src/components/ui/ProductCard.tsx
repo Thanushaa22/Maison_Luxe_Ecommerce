@@ -36,7 +36,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
       transition={{ duration: 0.4, ease: "easeOut" }}
       className="group relative"
     >
-      <Link href={`/product/${product.id}`}>
+      <Link href={`/product/${product.slug || product.id}`}>
         <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden transition-all duration-500 group-hover:border-amber-500/30 group-hover:shadow-2xl group-hover:shadow-amber-500/10">
           <div className="absolute inset-0 bg-gradient-to-b from-amber-500/0 to-amber-500/0 group-hover:from-amber-500/5 group-hover:to-transparent transition-all duration-500 rounded-2xl pointer-events-none" />
 

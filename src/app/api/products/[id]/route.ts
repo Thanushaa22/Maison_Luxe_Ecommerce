@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { mockProducts, mockReviews } from '@/lib/mock-data';
 
-async function getProductFromDB(id: string) {
+async function getProductFromDB(idOrSlug: string) {
   try {
     const prisma = (await import('@/lib/prisma')).default;
-    const product = await prisma.product.findUnique({
-      where: { id },
+    const product = await prisma.product.findFirst({
+      where: { OR: [{ id: idOrSlug }, { slug: idOrSlug }] },
       include: { reviews: { include: { user: { select: { id: true, name: true, avatar: true } } }, orderBy: { createdAt: 'desc' } } },
     });
     if (!product) return null;
@@ -24,10 +24,10 @@ async function getProductFromDB(id: string) {
   }
 }
 
-function getProductFromMock(id: string) {
-  const product = mockProducts.find(p => p.id === id);
+function getProductFromMock(idOrSlug: string) {
+  const product = mockProducts.find(p => p.id === idOrSlug || p.slug === idOrSlug);
   if (!product) return null;
-  const reviews = mockReviews.filter(r => r.productId === id);
+  const reviews = mockReviews.filter(r => r.productId === product.id);
   return { ...product, reviews };
 }
 
