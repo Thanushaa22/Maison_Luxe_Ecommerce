@@ -13,10 +13,12 @@ export async function POST(request: NextRequest) {
     let user: any = null;
 
     try {
-      const prisma = (await import('@/lib/prisma')).default;
-      user = await prisma.user.findUnique({ where: { email } });
-    } catch {
-      console.log('Prisma unavailable, using mock users');
+      const { default: prisma } = await import('@/lib/prisma');
+      if (prisma) {
+        user = await prisma.user.findUnique({ where: { email } });
+      }
+    } catch (e) {
+      console.log('Prisma unavailable for login:', e);
     }
 
     if (!user) {

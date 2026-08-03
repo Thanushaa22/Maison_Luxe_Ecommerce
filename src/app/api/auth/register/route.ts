@@ -12,10 +12,12 @@ export async function POST(request: NextRequest) {
     let existing: any = null;
 
     try {
-      const prisma = (await import('@/lib/prisma')).default;
-      existing = await prisma.user.findUnique({ where: { email } });
-    } catch {
-      console.log('Prisma unavailable, using mock users');
+      const { default: prisma } = await import('@/lib/prisma');
+      if (prisma) {
+        existing = await prisma.user.findUnique({ where: { email } });
+      }
+    } catch (e) {
+      console.log('Prisma unavailable for register:', e);
     }
 
     if (!existing) {
@@ -31,13 +33,15 @@ export async function POST(request: NextRequest) {
     let newUser: any = null;
 
     try {
-      const prisma = (await import('@/lib/prisma')).default;
-      newUser = await prisma.user.create({
-        data: { name, email, password: hashedPassword, phone: phone || null },
-        select: { id: true, email: true, name: true, role: true, phone: true, avatar: true, createdAt: true },
-      });
-    } catch {
-      console.log('Prisma unavailable, creating mock user');
+      const { default: prisma } = await import('@/lib/prisma');
+      if (prisma) {
+        newUser = await prisma.user.create({
+          data: { name, email, password: hashedPassword, phone: phone || null },
+          select: { id: true, email: true, name: true, role: true, phone: true, avatar: true, createdAt: true },
+        });
+      }
+    } catch (e) {
+      console.log('Prisma unavailable for user creation:', e);
     }
 
     if (!newUser) {

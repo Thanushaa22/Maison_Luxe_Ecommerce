@@ -9,17 +9,19 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      const prisma = (await import('@/lib/prisma')).default;
-      const user = await prisma.user.findFirst({
-        where: { resetToken: token, resetTokenExpiry: { gt: new Date() } },
-      });
-      if (user) {
-        const hashedPassword = await hashPassword(password);
-        await prisma.user.update({
-          where: { id: user.id },
-          data: { password: hashedPassword, resetToken: null, resetTokenExpiry: null },
+      const { default: prisma } = await import('@/lib/prisma');
+      if (prisma) {
+        const user = await prisma.user.findFirst({
+          where: { resetToken: token, resetTokenExpiry: { gt: new Date() } },
         });
-        return NextResponse.json({ message: 'Password reset successful' });
+        if (user) {
+          const hashedPassword = await hashPassword(password);
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { password: hashedPassword, resetToken: null, resetTokenExpiry: null },
+          });
+          return NextResponse.json({ message: 'Password reset successful' });
+        }
       }
     } catch {
       console.log('Prisma unavailable for reset-password');

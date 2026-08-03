@@ -42,9 +42,11 @@ export async function getUserFromRequest(request: Request) {
   if (!payload) return null;
 
   try {
-    const prisma = (await import('./prisma')).default;
-    const user = await prisma.user.findUnique({ where: { id: payload.id }, select: { id: true, email: true, name: true, role: true, phone: true, avatar: true, createdAt: true } });
-    if (user) return user;
+    const { default: prisma } = await import('./prisma');
+    if (prisma) {
+      const user = await prisma.user.findUnique({ where: { id: payload.id }, select: { id: true, email: true, name: true, role: true, phone: true, avatar: true, createdAt: true } });
+      if (user) return user;
+    }
   } catch {
     console.log('Prisma unavailable for getUserFromRequest, using mock');
   }

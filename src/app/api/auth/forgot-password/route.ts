@@ -9,25 +9,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
     }
 
-    let user: any = null;
-
     try {
-      const prisma = (await import('@/lib/prisma')).default;
-      user = await prisma.user.findUnique({ where: { email } });
-      if (user) {
-        const resetToken = crypto.randomBytes(32).toString('hex');
-        const resetTokenExpiry = new Date(Date.now() + 3600000);
-        await prisma.user.update({ where: { id: user.id }, data: { resetToken, resetTokenExpiry } });
-        return NextResponse.json({ message: 'Reset token generated', resetToken });
+      const { default: prisma } = await import('@/lib/prisma');
+      if (prisma) {
+        const user = await prisma.user.findUnique({ where: { email } });
+        if (user) {
+          const resetToken = crypto.randomBytes(32).toString('hex');
+          const resetTokenExpiry = new Date(Date.now() + 3600000);
+          await prisma.user.update({ where: { id: user.id }, data: { resetToken, resetTokenExpiry } });
+          return NextResponse.json({ message: 'Reset token generated', resetToken });
+        }
       }
     } catch {
       console.log('Prisma unavailable for forgot-password');
     }
 
-    if (!user) {
-      user = findMockUserByEmail(email);
-    }
-
+    findMockUserByEmail(email);
     const resetToken = crypto.randomBytes(32).toString('hex');
     return NextResponse.json({ message: 'Reset token generated', resetToken });
   } catch (error) {
