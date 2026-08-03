@@ -1,36 +1,188 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<div align="center">
 
-## Getting Started
+# MAISON LUXE
 
-First, run the development server:
+### *The Art of Luxury Fragrance*
+
+[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel&logoColor=white)](https://maison-luxe-ecommerce.vercel.app)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org)
+[![Three.js](https://img.shields.io/badge/Three.js-3D-blue?style=for-the-badge&logo=three.js&logoColor=white)](https://threejs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=for-the-badge&logo=typescript&logoColor=white)](https://typescriptlang.org)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-38bdf8?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+
+**🔗 Live: [maison-luxe-ecommerce.vercel.app](https://maison-luxe-ecommerce.vercel.app)**
+
+---
+
+A premium 3D perfume e-commerce experience built with Next.js, React Three Fiber, and Framer Motion.
+Immersive product visualization, cinematic video backgrounds, and a dark luxury aesthetic.
+
+</div>
+
+---
+
+## ✨ Features
+
+### 🛍️ E-Commerce
+- **12 luxury fragrances** with detailed product pages
+- **Dynamic pricing** — prices update based on selected size (30ml / 50ml / 100ml)
+- **Cart persistence** — survives page refresh via localStorage
+- **Checkout flow** — multi-step form with Card & Cash on Delivery
+- **Order history** — track past orders with status badges
+- **Wishlist** — save favorites across sessions
+
+### 🎨 Visual Experience
+- **3D product scenes** — interactive rotating bottles with React Three Fiber
+- **Cinematic videos** — hero background, showroom ambiance, brand story
+- **Framer Motion animations** — scroll reveals, page transitions, micro-interactions
+- **Dark luxury aesthetic** — gold accents, glass morphism, ambient lighting
+- **Image lightbox** — zoom into product photos
+
+### 🤖 Smart Features
+- **AI Fragrance Finder** — quiz-based recommendation engine
+- **Smart Search** — instant search with keyboard shortcut (⌘K)
+- **Toast notifications** — elegant feedback for cart/wishlist actions
+- **Recently viewed** — localStorage-based browsing history
+- **Share button** — native share API with clipboard fallback
+- **Back-in-stock alerts** — email signup for sold-out items
+
+### 📱 Responsive
+- Mobile-first design with hamburger menu
+- Optimized touch targets and layouts
+- Performance-tuned with lazy loading and code splitting
+
+---
+
+## 🏗️ Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| **Framework** | Next.js 16 (App Router, Turbopack) |
+| **Language** | TypeScript 5 |
+| **Styling** | Tailwind CSS 4 |
+| **3D Graphics** | Three.js + React Three Fiber + Drei |
+| **Post-Processing** | @react-three/postprocessing (Bloom, Vignette) |
+| **Animations** | Framer Motion |
+| **State** | Zustand (with localStorage persistence) |
+| **Icons** | Lucide React |
+| **Deployment** | Vercel |
+
+---
+
+## 🚀 Getting Started
 
 ```bash
+# Clone the repository
+git clone https://github.com/Thanushaa22/Maison_Luxe_Ecommerce.git
+
+# Navigate to project
+cd Maison_Luxe_Ecommerce
+
+# Install dependencies
+npm install
+
+# Start development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📁 Project Structure
 
-## Learn More
+```
+src/
+├── app/                    # Next.js App Router pages
+│   ├── page.tsx            # Landing page with video hero
+│   ├── collection/         # Product catalog with filters
+│   ├── product/[id]/       # Product detail with 3D scene
+│   ├── showroom/           # 3D CSS perspective gallery
+│   ├── checkout/           # Multi-step checkout
+│   ├── orders/             # Order history
+│   ├── wishlist/           # Saved items
+│   ├── contact/            # Contact page
+│   └── api/                # API routes (mock data)
+├── components/
+│   ├── 3d/                 # React Three Fiber scenes
+│   │   ├── ProductScene    # Product detail 3D viewer
+│   │   ├── Scene           # Hero 3D scene
+│   │   └── PerfumeBottle   # 3D bottle model
+│   └── ui/                 # Reusable UI components
+│       ├── Navbar          # Navigation with search
+│       ├── Footer          # Site footer
+│       ├── ProductCard     # Product grid card
+│       ├── CartDrawer      # Slide-out cart
+│       ├── SmartSearch     # ⌘K search overlay
+│       ├── FragranceFinder # Quiz recommendation
+│       ├── Toast           # Notification system
+│       └── ...             # 20+ more components
+├── store/                  # Zustand state management
+├── lib/                    # Mock data & utilities
+└── types/                  # TypeScript interfaces
+```
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🎯 Key Highlights
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 3D Product Visualization
+Each product features an interactive 3D scene with:
+- Hexagonal glass bottle with realistic refraction
+- Gold accent lines and orbital rings
+- Floating gold particles with additive blending
+- Reflective floor using `MeshReflectorMaterial`
+- Dynamic lighting (7-point setup)
+- Post-processing bloom and vignette effects
 
-## Deploy on Vercel
+### AI Fragrance Finder
+A 4-step quiz that recommends perfumes based on:
+- **Mood** — Romantic, Fresh, Bold, or Elegant
+- **Season** — Summer, Winter, Spring, Monsoon
+- **Occasion** — Daily, Date Night, Events, Casual
+- **Intensity** — Subtle, Moderate, or Bold
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Smart Checkout
+- Email & phone validation
+- Address form with Indian pincode support
+- Card payment with number formatting
+- Cash on Delivery option
+- Free shipping above ₹10,000
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## 📊 Performance
+
+- **Static generation** for all marketing pages
+- **Dynamic rendering** for product pages and API routes
+- **Code splitting** — 3D scenes load on demand
+- **Image optimization** — Next.js Image with lazy loading
+- **Video optimization** — `preload="metadata"` for background videos
+- **Bundle optimization** — Tree-shaking for Framer Motion, Lucide icons
+
+---
+
+## 🔗 Links
+
+| Resource | URL |
+|----------|-----|
+| **Live Site** | [maison-luxe-ecommerce.vercel.app](https://maison-luxe-ecommerce.vercel.app) |
+| **Repository** | [github.com/Thanushaa22/Maison_Luxe_Ecommerce](https://github.com/Thanushaa22/Maison_Luxe_Ecommerce) |
+| **LinkedIn** | [linkedin.com/in/thanusha2233](https://linkedin.com/in/thanusha2233) |
+| **Email** | [thanusham2233@gmail.com](mailto:thanusham2233@gmail.com) |
+
+---
+
+## 📝 License
+
+This project is open source and available under the [MIT License](LICENSE).
+
+---
+
+<div align="center">
+
+**Built with ♦ by [Thanusha M](https://linkedin.com/in/thanusha2233)**
+
+*"Every fragrance tells a story. Every detail matters."*
+
+</div>
