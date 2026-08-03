@@ -39,6 +39,7 @@ export default function AuthModal() {
       localStorage.setItem("auth_token", data.token);
       useStore.setState({ user: data.user });
       setAuthOpen(false);
+      window.location.href = data.user.role === "ADMIN" ? "/admin" : "/dashboard";
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {
@@ -65,6 +66,7 @@ export default function AuthModal() {
       localStorage.setItem("auth_token", data.token);
       useStore.setState({ user: data.user });
       setAuthOpen(false);
+      window.location.href = "/dashboard";
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Registration failed");
     } finally {

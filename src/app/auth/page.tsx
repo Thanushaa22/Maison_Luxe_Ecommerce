@@ -26,26 +26,8 @@ export default function AuthPage() {
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
 
   if (user) {
-    return (
-      <div className="min-h-screen bg-luxury-bg pt-24 pb-16 px-4">
-        <div className="max-w-md mx-auto text-center py-24">
-          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
-            <User size={32} className="text-amber-500" />
-          </div>
-          <h1 className="font-display text-2xl text-white mb-2">Welcome back, {user.name}</h1>
-          <p className="text-white/40 font-body text-sm mb-8">{user.email}</p>
-          <Link href="/">
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              className="px-8 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-black font-body font-semibold tracking-wider uppercase text-sm rounded-full hover:shadow-lg hover:shadow-amber-500/30 transition-all"
-            >
-              Go to Homepage
-            </motion.button>
-          </Link>
-        </div>
-      </div>
-    );
+    router.replace('/');
+    return null;
   }
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -62,7 +44,7 @@ export default function AuthPage() {
       if (!res.ok) throw new Error(data.error || 'Login failed');
       localStorage.setItem('auth_token', data.token);
       useStore.setState({ user: data.user });
-      router.push('/');
+      router.push(data.user.role === 'ADMIN' ? '/admin' : '/dashboard');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Login failed');
     } finally {
@@ -88,7 +70,7 @@ export default function AuthPage() {
       if (!res.ok) throw new Error(data.error || 'Registration failed');
       localStorage.setItem('auth_token', data.token);
       useStore.setState({ user: data.user });
-      router.push('/');
+      router.push('/dashboard');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Registration failed');
     } finally {
