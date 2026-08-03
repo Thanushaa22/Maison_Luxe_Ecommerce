@@ -12,6 +12,7 @@ import {
   LogOut,
   LayoutDashboard,
 } from "lucide-react";
+import { useCartStore } from "@/store/useCartStore";
 import { useStore } from "@/store/useStore";
 
 const navLinks = [
@@ -28,7 +29,7 @@ export default function Navbar() {
   const setCartOpen = useStore((s) => s.ui.setCartOpen);
   const isAuthOpen = useStore((s) => s.ui.isAuthOpen);
   const setAuthOpen = useStore((s) => s.ui.setAuthOpen);
-  const cartItems = useStore((s) => s.cart.items);
+  const cartItems = useCartStore((s) => s.items);
   const user = useStore((s) => s.user.user);
   const logout = useStore((s) => s.user.logout);
   const [wishlistCount] = useState(0);

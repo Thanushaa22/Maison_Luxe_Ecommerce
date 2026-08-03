@@ -2,49 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import dynamic from 'next/dynamic';
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
+  PieChart, Pie, Cell, ResponsiveContainer
+} from 'recharts';
 import {
   LayoutDashboard, Package, ShoppingCart, Users, Tag, BarChart3,
   TrendingUp, TrendingDown, DollarSign, Package as PackageIcon, AlertTriangle,
   Plus, Search, Edit, Trash2, ChevronDown, Eye,
 } from 'lucide-react';
-
-const AreaChart = dynamic(
-  () => import('recharts').then(m => m.AreaChart),
-  { ssr: false }
-);
-const Area = dynamic(
-  () => import('recharts').then(m => m.Area),
-  { ssr: false }
-);
-const XAxis = dynamic(
-  () => import('recharts').then(m => m.XAxis),
-  { ssr: false }
-);
-const YAxis = dynamic(
-  () => import('recharts').then(m => m.YAxis),
-  { ssr: false }
-);
-const CartesianGrid = dynamic(
-  () => import('recharts').then(m => m.CartesianGrid),
-  { ssr: false }
-);
-const Tooltip = dynamic(
-  () => import('recharts').then(m => m.Tooltip),
-  { ssr: false }
-);
-const PieChart = dynamic(
-  () => import('recharts').then(m => m.PieChart),
-  { ssr: false }
-);
-const Pie = dynamic(
-  () => import('recharts').then(m => m.Pie),
-  { ssr: false }
-);
-const Cell = dynamic(
-  () => import('recharts').then(m => m.Cell),
-  { ssr: false }
-);
 
 interface DashboardStats {
   totalRevenue: number;
@@ -172,34 +138,36 @@ export default function AdminPage() {
       >
         <h3 className="font-display text-lg text-white mb-6">Revenue Overview</h3>
         <div className="h-64">
-          {stats?.monthlyRevenue && (
-            <AreaChart data={stats.monthlyRevenue} width={800} height={250}>
-              <defs>
-                <linearGradient id="goldGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#d4a843" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#d4a843" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-              <XAxis dataKey="month" stroke="rgba(255,255,255,0.3)" fontSize={12} />
-              <YAxis stroke="rgba(255,255,255,0.3)" fontSize={12} tickFormatter={(v) => `₹${v / 1000}K`} />
-              <Tooltip
-                contentStyle={{
-                  background: 'rgba(10,10,10,0.9)',
-                  border: '1px solid rgba(212,168,67,0.2)',
-                  borderRadius: '8px',
-                  color: '#fff',
-                }}
-                formatter={(value: number) => [`₹${value.toLocaleString('en-IN')}`, 'Revenue']}
-              />
-              <Area
-                type="monotone"
-                dataKey="revenue"
-                stroke="#d4a843"
-                strokeWidth={2}
-                fill="url(#goldGradient)"
-              />
-            </AreaChart>
+          {stats?.monthlyRevenue?.length > 0 && (
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={stats.monthlyRevenue}>
+                <defs>
+                  <linearGradient id="goldGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#d4a843" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#d4a843" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                <XAxis dataKey="month" stroke="rgba(255,255,255,0.3)" fontSize={12} />
+                <YAxis stroke="rgba(255,255,255,0.3)" fontSize={12} tickFormatter={(v) => `₹${v / 1000}K`} />
+                <Tooltip
+                  contentStyle={{
+                    background: 'rgba(10,10,10,0.9)',
+                    border: '1px solid rgba(212,168,67,0.2)',
+                    borderRadius: '8px',
+                    color: '#fff',
+                  }}
+                  formatter={(value: number) => [`₹${value.toLocaleString('en-IN')}`, 'Revenue']}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke="#d4a843"
+                  strokeWidth={2}
+                  fill="url(#goldGradient)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
           )}
         </div>
       </motion.div>
@@ -501,28 +469,30 @@ export default function AdminPage() {
         <div className="glass rounded-xl p-6">
           <h4 className="font-display text-lg text-white mb-4">Revenue Over Time</h4>
           <div className="h-64">
-            {stats?.monthlyRevenue && (
-              <AreaChart data={stats.monthlyRevenue} width={500} height={250}>
-                <defs>
-                  <linearGradient id="goldGradient2" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#d4a843" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#d4a843" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="month" stroke="rgba(255,255,255,0.3)" fontSize={12} />
-                <YAxis stroke="rgba(255,255,255,0.3)" fontSize={12} tickFormatter={(v) => `₹${v / 1000}K`} />
-                <Tooltip
-                  contentStyle={{
-                    background: 'rgba(10,10,10,0.9)',
-                    border: '1px solid rgba(212,168,67,0.2)',
-                    borderRadius: '8px',
-                    color: '#fff',
-                  }}
-                  formatter={(value: number) => [`₹${value.toLocaleString('en-IN')}`, 'Revenue']}
-                />
-                <Area type="monotone" dataKey="revenue" stroke="#d4a843" strokeWidth={2} fill="url(#goldGradient2)" />
-              </AreaChart>
+            {stats?.monthlyRevenue?.length > 0 && (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={stats.monthlyRevenue}>
+                  <defs>
+                    <linearGradient id="goldGradient2" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#d4a843" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#d4a843" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                  <XAxis dataKey="month" stroke="rgba(255,255,255,0.3)" fontSize={12} />
+                  <YAxis stroke="rgba(255,255,255,0.3)" fontSize={12} tickFormatter={(v) => `₹${v / 1000}K`} />
+                  <Tooltip
+                    contentStyle={{
+                      background: 'rgba(10,10,10,0.9)',
+                      border: '1px solid rgba(212,168,67,0.2)',
+                      borderRadius: '8px',
+                      color: '#fff',
+                    }}
+                    formatter={(value: number) => [`₹${value.toLocaleString('en-IN')}`, 'Revenue']}
+                  />
+                  <Area type="monotone" dataKey="revenue" stroke="#d4a843" strokeWidth={2} fill="url(#goldGradient2)" />
+                </AreaChart>
+              </ResponsiveContainer>
             )}
           </div>
         </div>
@@ -531,36 +501,38 @@ export default function AdminPage() {
         <div className="glass rounded-xl p-6">
           <h4 className="font-display text-lg text-white mb-4">Category Distribution</h4>
           <div className="h-64 flex items-center justify-center">
-            <PieChart width={300} height={250}>
-              <Pie
-                data={[
-                  { name: 'Floral', value: 35 },
-                  { name: 'Oriental', value: 25 },
-                  { name: 'Woody', value: 20 },
-                  { name: 'Fresh', value: 12 },
-                  { name: 'Citrus', value: 5 },
-                  { name: 'Aquatic', value: 3 },
-                ]}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={90}
-                paddingAngle={3}
-                dataKey="value"
-              >
-                {pieColors.map((color, index) => (
-                  <Cell key={index} fill={color} />
-                ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{
-                  background: 'rgba(10,10,10,0.9)',
-                  border: '1px solid rgba(212,168,67,0.2)',
-                  borderRadius: '8px',
-                  color: '#fff',
-                }}
-              />
-            </PieChart>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={[
+                    { name: 'Floral', value: 35 },
+                    { name: 'Oriental', value: 25 },
+                    { name: 'Woody', value: 20 },
+                    { name: 'Fresh', value: 12 },
+                    { name: 'Citrus', value: 5 },
+                    { name: 'Aquatic', value: 3 },
+                  ]}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={90}
+                  paddingAngle={3}
+                  dataKey="value"
+                >
+                  {pieColors.map((color, index) => (
+                    <Cell key={index} fill={color} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    background: 'rgba(10,10,10,0.9)',
+                    border: '1px solid rgba(212,168,67,0.2)',
+                    borderRadius: '8px',
+                    color: '#fff',
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
           <div className="grid grid-cols-3 gap-3 mt-4">
             {[

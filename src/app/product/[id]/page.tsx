@@ -4,7 +4,7 @@ import { useState, useEffect, use } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { useStore } from '@/store/useStore';
+import { useCartStore } from '@/store/useCartStore';
 import { trackRecentlyViewed } from '@/components/ui/RecentlyViewed';
 import { useToast } from '@/components/ui/Toast';
 
@@ -79,7 +79,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const [notifyEmail, setNotifyEmail] = useState('');
   const [isNotifying, setIsNotifying] = useState(false);
   const [notified, setNotified] = useState(false);
-  const cart = useStore((state) => state.cart);
+  const cart = useCartStore();
   const { showToast } = useToast();
 
   useEffect(() => {

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { X, Plus, Minus, ShoppingBag } from "lucide-react";
 import Link from "next/link";
+import { useCartStore } from "@/store/useCartStore";
 import { useStore } from "@/store/useStore";
 
 const formatPrice = (price: number) =>
@@ -16,14 +17,14 @@ const formatPrice = (price: number) =>
 export default function CartDrawer() {
   const isCartOpen = useStore((s) => s.ui.isCartOpen);
   const setCartOpen = useStore((s) => s.ui.setCartOpen);
-  const items = useStore((s) => s.cart.items);
+  const items = useCartStore((s) => s.items);
   const subtotal = items.reduce(
     (sum, item) => sum + item.product.price * item.quantity,
     0
   );
 
-  const updateQuantity = useStore((s) => s.cart.updateQuantity);
-  const removeItem = useStore((s) => s.cart.removeItem);
+  const updateQuantity = useCartStore((s) => s.updateQuantity);
+  const removeItem = useCartStore((s) => s.removeItem);
 
   return (
     <AnimatePresence>
