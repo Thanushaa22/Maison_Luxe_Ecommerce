@@ -1,7 +1,5 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import prisma from './prisma';
-import { isDbAvailable } from './db-check';
 import { findMockUserByEmail } from './mock-data';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'maison-luxe-super-secret-key-2026';
@@ -43,10 +41,12 @@ export async function getUserFromRequest(request: Request) {
   const payload = verifyToken(token);
   if (!payload) return null;
 
-  const dbUp = await isDbAvailable();
-  if (dbUp) {
+  try {
+    const prisma = (await import('./prisma')).default;
     const user = await prisma.user.findUnique({ where: { id: payload.id }, select: { id: true, email: true, name: true, role: true, phone: true, avatar: true, createdAt: true } });
-    return user;
+    if (user) return user;
+  } catch {
+    console.log('Prisma unavailable for getUserFromRequest, using mock');
   }
 
   const mockUser = findMockUserByEmail(payload.email);

@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
 import crypto from 'crypto';
-import { isDbAvailable } from '@/lib/db-check';
 import { findMockUserByEmail } from '@/lib/mock-data';
 
 export async function POST(request: NextRequest) {
@@ -11,26 +9,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
     }
 
-    const dbUp = await isDbAvailable();
+    let user: any = null;
 
-    if (dbUp) {
-      const user = await prisma.user.findUnique({ where: { email } });
-      if (!user) {
-        return NextResponse.json({ message: 'If an account exists, a reset link has been sent.' });
+    try {
+      const prisma = (await import('@/lib/prisma')).default;
+      user = await prisma.user.findUnique({ where: { email } });
+      if (user) {
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const resetTokenExpiry = new Date(Date.now() + 3600000);
+        await prisma.user.update({ where: { id: user.id }, data: { resetToken, resetTokenExpiry } });
+        return NextResponse.json({ message: 'Reset token generated', resetToken });
       }
-      const resetToken = crypto.randomBytes(32).toString('hex');
-      const resetTokenExpiry = new Date(Date.now() + 3600000);
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { resetToken, resetTokenExpiry },
-      });
-      return NextResponse.json({ message: 'Reset token generated', resetToken });
+    } catch {
+      console.log('Prisma unavailable for forgot-password');
     }
 
-    const mockUser = findMockUserByEmail(email);
-    if (!mockUser) {
-      return NextResponse.json({ message: 'If an account exists, a reset link has been sent.' });
+    if (!user) {
+      user = findMockUserByEmail(email);
     }
+
     const resetToken = crypto.randomBytes(32).toString('hex');
     return NextResponse.json({ message: 'Reset token generated', resetToken });
   } catch (error) {

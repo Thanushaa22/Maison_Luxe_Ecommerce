@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
-import { hashPassword, generateToken } from '@/lib/auth';
-import { isDbAvailable } from '@/lib/db-check';
-import { findMockUserByEmail, createMockUser } from '@/lib/mock-data';
+import { generateToken } from '@/lib/auth';
+import { findMockUserByEmail } from '@/lib/mock-data';
 import bcrypt from 'bcryptjs';
 
 export async function POST(request: NextRequest) {
@@ -12,32 +10,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
     }
 
-    const dbUp = await isDbAvailable();
+    let user: any = null;
 
-    if (dbUp) {
-      const user = await prisma.user.findUnique({ where: { email } });
-      if (!user) {
-        return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
-      }
-      const isValid = await bcrypt.compare(password, user.password);
-      if (!isValid) {
-        return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
-      }
-      const token = generateToken({ id: user.id, email: user.email, role: user.role });
-      const { password: _, ...userWithoutPassword } = user;
-      return NextResponse.json({ user: userWithoutPassword, token });
+    try {
+      const prisma = (await import('@/lib/prisma')).default;
+      user = await prisma.user.findUnique({ where: { email } });
+    } catch {
+      console.log('Prisma unavailable, using mock users');
     }
 
-    const mockUser = findMockUserByEmail(email);
-    if (!mockUser) {
+    if (!user) {
+      user = findMockUserByEmail(email);
+    }
+
+    if (!user) {
       return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
     }
-    const isValid = await bcrypt.compare(password, mockUser.password);
+
+    const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) {
       return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
     }
-    const token = generateToken({ id: mockUser.id, email: mockUser.email, role: mockUser.role });
-    const { password: _, ...userWithoutPassword } = mockUser;
+
+    const token = generateToken({ id: user.id, email: user.email, role: user.role });
+    const { password: _, ...userWithoutPassword } = user;
     return NextResponse.json({ user: userWithoutPassword, token });
   } catch (error) {
     console.error('Login error:', error);
